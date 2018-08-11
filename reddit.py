@@ -1,7 +1,6 @@
 import asyncio
 import praw
 import config
-Config = config.Config('config.ini')
 from time import sleep
 import random
 import time
@@ -9,6 +8,7 @@ from exceptions import *
 from urltype import UrlType
 from prawcore.exceptions import NotFound
 
+Config = config.Config('config.ini')
 
 
 class Reddit:
@@ -61,7 +61,6 @@ class Reddit:
 
         # check if we actually have posts
         posts_length = len(posts)
-        print(posts)
         if posts_length < 1:
             raise NoPostsReturned("No Posts Returned for subreddit " + str(subreddit) + " with a post count of " + str(post_count))
         # now we need to randomly grab a post
@@ -90,9 +89,7 @@ class Reddit:
             test.next()
             return True
         except Exception as e:
-
             if str(e) == "Redirect to /subreddits/search":
-
                 return False
             else:
                 raise UnknownException(str(e))
@@ -129,37 +126,28 @@ class Reddit:
 
             if image is not None:
                 if image:
-
                     if post_type == "link" or post_type == "reddit":
-                        print("skipping post due to being link")
-                        print(post_type)
                         skip_post = True
                 else:
                     if post_type != "link" and post_type != "reddit":
-                        print("skipping post not due to being link " + str(post_type))
                         skip_post = True
 
 
             # skip any posts with a blacklisted author
             if post_author in Config.r_ignore_users:
-                print("skipping post due ignore use")
                 skip_post = True
 
             # skip any mod posts if set
             if (post.distinguished == "moderator") and Config.r_skip_mod_posts:
                 skip_post = True
-                print("skipping post due to being mod")
 
             # skip any stickied posts if set
             if post.stickied and Config.r_skip_stickied_posts:
-                print("skipping post due to being skitcied")
                 skip_post = True
 
             # skip any removed posts
             if post.removal_reason is not None:
-
                 skip_post = True
-                print("skipping post due to being removed")
 
             # save this post
 
@@ -186,12 +174,8 @@ class Reddit:
                               'created_utc':created_utc
                               })
 
-
-
         return posts
 
-
-    # def __process_posts(self, posts):
 
     def __get_comments(self, post_id, comment_num):
 
@@ -228,7 +212,8 @@ class Reddit:
 
                     else:
                         total_length = total_length - len(comment_body)
-                        print("skipping post as exceeds set")
+
+                        
             except IndexError:
                 pass
             except Exception as e:
