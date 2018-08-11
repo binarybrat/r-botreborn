@@ -15,7 +15,7 @@ class Gfycat:
         self.__client_secret = str(client_secret)
 
         if self.__client_id is None or self.__client_secret is None:
-            raise GfycatMissingCredentials()
+            raise GfycatMissingCredentials
 
     async def get_api_token(self, api_url):
 
