@@ -1,12 +1,11 @@
 import discord
 
-
-
 """
 
 REDDIT EMBED TEMPLATES
 
 """
+
 
 class RedditEmbed:
 
@@ -76,8 +75,6 @@ class RedditPostEmbed:
         else:
             nsfw_text = ""
 
-
-
         self._embed = discord.Embed(title=title, url=url, description=description, colour=self._colour)
 
         print(type(image_url))
@@ -125,6 +122,7 @@ class RedditErrorEmbed(RedditPostEmbed):
         self._embed = discord.Embed(title=title, description=description, colour=self._colour)
         self._embed.set_footer(icon_url=self._reddit_icon_url, text="reddit" + extra_info)
 
+        
 class RedditCommentEmbed(RedditPostEmbed):
 
     def __init__(self):
@@ -140,8 +138,6 @@ class RedditCommentEmbed(RedditPostEmbed):
             except IndexError:
                 pass
         self._embed.set_footer(icon_url=self._reddit_icon_url, text="reddit")
-
-
 
 
 
