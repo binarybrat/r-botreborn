@@ -112,7 +112,7 @@ async def reddit_handler(ctx, subreddit, post_count, image, comment_num):
     # handle the post types
     print(post)
     post_type = post.get('post_type')
-    image_url = "NONE"
+    image_url = "NONE" # had issues with None being turned to a str type for some reason
     if post_type != "link" and post_type != "reddit":
 
         if post_type != "gif" and post_type != "image":
@@ -121,16 +121,12 @@ async def reddit_handler(ctx, subreddit, post_count, image, comment_num):
 
                 post_gfycat = Gfycat(Config.r_gfycat_client_id, Config.r_gfycat_client_secret)
                 gfyjson = await post_gfycat.get_gfy_info(str(post.get('post_url'))[19:(len(str(post.get('post_url'))))])
-                print(gfyjson) # fails if starts with http://
+                print(gfyjson) # TODO: fails if starts with http://
                 image_url = gfyjson['gfyItem']['max5mbGif']
                 # TODO: maybe some error handling here?
             elif post_type == "imgur":
 
                 post['post_text'] = "R-BotReborn: Imgur Links are not supported yet"
-
-                #error_embed = RedditErrorEmbed()
-                #error_embed.create_embed(title="Imgur Links are not supported yet")
-                #await bot.send_message(ctx.message.channel, embed=error_embed.get_embed())
 
             else:
 
@@ -171,15 +167,8 @@ async def reddit_handler(ctx, subreddit, post_count, image, comment_num):
                     if error_embed is not None:
 
                         # time to send error to channel
-
                         await bot.edit_message(bot_message, embed=error_embed.get_embed())
                         return
-                # any other post types e.g youtube, video, vimeo
-
-
-
-
-                # TODO: GFYCAT ENCODE
 
         elif post_type == "gif" or post_type == "image": # either gif or image
 
@@ -248,12 +237,6 @@ def connect_reddit():
     reddit = praw.Reddit(client_id=Config.r_client_id,
                          client_secret=Config.r_client_secret, password=Config.r_password,
                          user_agent=Config.r_user_agent, username=Config.r_username)
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
