@@ -9,7 +9,6 @@ class Config:
 
         # now set values to the values in the config file
 
-        # discord onyl allows bot accounts now
         self.discord_token = config.get('discord.cred', 'token', fallback=None)
         self.discord_server = config.get('discord.cred', 'server', fallback=None)
 
@@ -67,8 +66,8 @@ class UpdateConfig:
         if channel not in nsfw_channels:
             nsfw_channels.append(channel)
 
-            ass = json.dumps(nsfw_channels)
-            self.__config['discord.bot']['nsfwchannels'] = ass
+            nsfw_c = json.dumps(nsfw_channels)
+            self.__config['discord.bot']['nsfwchannels'] = nsfw_c
 
             with open(self.__config_file, 'w') as configfile:
                 self.__config.write(configfile)
