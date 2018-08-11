@@ -1,8 +1,7 @@
 
 class UrlType:
 
-
-
+    
     """
     usage example:
     image_type = UrlType("url").get_url_type()
@@ -51,8 +50,6 @@ class UrlType:
             if self.url.endswith(video_format):
                 return True # is a video format
         return False # not present
-
-
 
     def check_image_types(self):
         for image_format in self.possible_image_types:
