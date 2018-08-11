@@ -176,7 +176,6 @@ class Reddit:
 
         return posts
 
-
     def __get_comments(self, post_id, comment_num):
 
         submission = self._praw_object.submission(id=str(post_id))
@@ -200,7 +199,6 @@ class Reddit:
                     total_length = total_length + len(comment_body)
 
                     # check if the total length of all comments combined doesnt exceed a limit (discord has a limit, staying well below that)
-                    print("Total Length is " + str(total_length))
                     if total_length < Config.r_comment_total_length:
                         if not skip_comment:
                             comments.append({'id':str(submission.comments[x].id),
