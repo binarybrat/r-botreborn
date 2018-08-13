@@ -10,7 +10,7 @@ class Config:
         # now set values to the values in the config file
 
         self.discord_token = config.get('discord.cred', 'token', fallback=None)
-        self.discord_server = config.get('discord.cred', 'server', fallback=None)
+        # self.discord_server = config.get('discord.cred', 'server', fallback=None)
 
         # discord.bot
 
@@ -42,6 +42,9 @@ class Config:
 
 
 class ConfigDefaults:
+    
+    # some defaults
+    
     box_prefix = "-"
     server = "discord"
     r_user_agent = "rbotreborn_discord"
