@@ -7,6 +7,7 @@ Using discord.py
 `python3 rbotreborn.py`
 
 Current Commands:
+
 *gets posts by hot*
 * -r [subreddit] [amount of posts to randomly iterate through (optional)] **- gets image/text etc based posts**
 * -ri [subreddit] [amount of posts...] **- gets image-based posts only (gif, video etc)**
