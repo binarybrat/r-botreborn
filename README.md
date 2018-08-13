@@ -1,5 +1,5 @@
 # R-BotReborn
-## A (very basic) discord bot written in Python 3 that displays reddit posts in discord
+## A (very basic) discord bot written in Python 3 that displays Reddit posts in discord
 Using discord.py
 
 ### Usage
@@ -23,10 +23,15 @@ Basically you need:
 * praw
 
 
-### Config File (config.ini)
+#### Config File (config.ini)
 
 * Under discord.cred need your bot token
 * Under reddit.cred need to add your reddit credentials (including api keys). This is used by Praw.
 * Under Gfycat need to add Gfycat API Credentials. 
+
+### Current Issues:
+
+**Probably Lots**
+* Imgur links currently not supported yet (need to maybe a. use imgur api to grab image url or b. some time of parser)
 
 #### Note: this was just a little project I worked on while learning Python, so the code quality could be very poor and is very messy. It "works"
