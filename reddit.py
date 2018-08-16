@@ -1,12 +1,12 @@
 import asyncio
 import praw
 import config
-from time import sleep
 import random
 import time
 from exceptions import *
 from urltype import UrlType
 from prawcore.exceptions import NotFound
+from praw.exceptions import ClientException
 
 Config = config.Config('config.ini')
 
@@ -22,18 +22,43 @@ class Reddit:
         image = kwargs.get('get_image', None)
         nsfw = bool(kwargs.get('nsfw', False))
         comment_count = int(kwargs.get('comment_count', 0))
+        request_type = kwargs.get('request_type', 'default')
+        url = kwargs.get('url', None)
+        loop = asyncio.get_event_loop()
 
+        # checking if the request is a url (for when we want to get a post from a url.# TODO: maybe post id?
+        if request_type == 'url':  # subreddit is set to the url in this case
+
+            print("Request Type is URL")
+
+            def get_from_url():
+                return self.__get_post_from_url(url)
+
+            def get_the_comments():
+                return self.__get_comments(post_data.get('post_id'), comment_count)
+            future10 = loop.run_in_executor(None, get_from_url)
+            post_data = await future10
+
+            if comment_count > 0:
+                future11 = loop.run_in_executor(None, get_the_comments)
+                comment_data = await future11
+            else:
+                comment_data = []
+            return post_data, comment_data
+
+        # if not a url continue with normal post-grabbing
         if post_count > Config.r_maxpostcount:
             post_count = Config.r_maxpostcount
 
         # check if the subreddit exists, using do_req function to keep async shit however it works
         def do_req():
             return self.check_if_sub_exists(subreddit)
+
         # have to do some asyncio shit
-        loop = asyncio.get_event_loop()
+
         future = loop.run_in_executor(None, do_req)
 
-        if_sub_exists = await future # should be either True (exists) or False (doesnt exist)
+        if_sub_exists = await future  # should be either True (exists) or False (doesnt exist)
 
         # if subreddit does not exist, raise an error
         if not if_sub_exists:
@@ -44,9 +69,10 @@ class Reddit:
         if not nsfw:
             def nsfw_req():
                 return self.check_if_over18(subreddit)
+
             future2 = loop.run_in_executor(None, nsfw_req)
             result = await future2
-            print(result)
+
             if result:
                 raise SubredditIsNSFW(str(subreddit) + " is a NSFW subreddit")
 
@@ -56,18 +82,19 @@ class Reddit:
 
         def get_the_posts():
             return self.__get_posts(subreddit, post_count, image, nsfw, comment_count)
+
         future3 = loop.run_in_executor(None, get_the_posts)
         posts = await future3
 
         # check if we actually have posts
         posts_length = len(posts)
         if posts_length < 1:
-            raise NoPostsReturned("No Posts Returned for subreddit " + str(subreddit) + " with a post count of " + str(post_count))
+            raise NoPostsReturned(
+                "No Posts Returned for subreddit " + str(subreddit) + " with a post count of " + str(post_count))
         # now we need to randomly grab a post
 
-        random_post_num = random.randint(0, posts_length -1)
+        random_post_num = random.randint(0, posts_length - 1)
         # grabbing the comments if requested
-
 
         if comment_count > 0:
             def get_the_comments():
@@ -82,7 +109,6 @@ class Reddit:
 
         return posts[random_post_num], comments
 
-
     def check_if_sub_exists(self, subreddit):
         try:
             test = self._praw_object.subreddit(subreddit).new(limit=1)
@@ -93,7 +119,7 @@ class Reddit:
                 return False
             else:
                 raise UnknownException(str(e))
-                #TODO: handle other errors that may arise
+                # TODO: handle other errors that may arise
 
     def check_if_over18(self, subreddit):
         try:
@@ -110,15 +136,12 @@ class Reddit:
 
         for post in self._praw_object.subreddit(subreddit).hot(limit=post_count):
             skip_post = False
-            # check if post is NSFW marked
-            post_nsfw = post.over_18
             post_url = str(post.url)
             post_author = str(post.author)
             if post.over_18 and not nsfw:
                 skip_post = True
-            post_text = str(post.selftext)
             # get the type of post (based on the URL)
-            post_type = UrlType(post_url).get_url_type() # TODO - this is a asynced class shit need to fix
+            post_type = UrlType(post_url).get_url_type()  # TODO - this is a asynced class shit need to fix
 
             # if image is true, only get image based posts
             # if not, only get links and post
@@ -131,7 +154,6 @@ class Reddit:
                 else:
                     if post_type != "link" and post_type != "reddit":
                         skip_post = True
-
 
             # skip any posts with a blacklisted author
             if post_author in Config.r_ignore_users:
@@ -152,29 +174,59 @@ class Reddit:
             # save this post
 
             if skip_post is False:
-
-                # check post length
-                if len(post_text) > Config.r_post_length_discord:
-                    post_text = (post_text[:Config.r_post_length_discord] + '... [go to reddit post to read more]')
-
-                created_utc = int(post.created_utc)
-                created_utc = time.strftime('%Y-%m-%d %H:%M', time.gmtime(created_utc))
-
-                posts.append({'post_id': str(post.id),
-                              'post_url':post_url,
-                              'post_author':post_author,
-                              'nsfw':bool(post_nsfw),
-                              'post_title':str(post.title),
-                              'post_score':int(post.score),
-                              'post_length':len(post_text),
-                              'post_text':post_text,
-                              'post_type':post_type,
-                              'post_permalink': "https://reddit.com" + str(post.permalink),
-                              'post_subreddit':subreddit,
-                              'created_utc':created_utc
-                              })
+                posts.append(self.__get_post_data(post, post_type, post_url, subreddit))
 
         return posts
+
+    def __get_post_from_url(self, url):
+        try:
+            submission = self._praw_object.submission(url=url)
+        except ClientException as e:
+            raise InvalidRedditURL("Invalid Reddit Submission URL. Details (ClientException): " + str(e))
+        except NotFound as e:
+            raise InvalidRedditURL("Invalid Reddit Submission URL. Details (NotFound Exception): " + str(e))
+        except Exception as e:
+            raise UnknownException("Unknown Exception when trying to get submission from URL. Maybe invalid url?")
+        # get post type
+        try:
+            post_type = UrlType(submission.url).get_url_type()
+        except NotFound as e:
+            raise InvalidRedditURL("Invalid Reddit Submission URL. Details (NotFound Exception): " + str(e))
+        # get post data
+
+        print(self.__get_post_data(submission, post_type, url, str(submission.subreddit)))
+
+        return self.__get_post_data(submission, post_type, submission.url, str(submission.subreddit))
+
+    def __get_post_data(self, post, post_type, post_url, subreddit):
+
+        # check post length
+        post_text = post.selftext
+        post_title = post.title
+        if len(post_text) > 1850:
+            post_text = (post_text[:1850] + '... [go to reddit post to read more]')
+
+        # we also need to check the title length as discord embed titles are limited to 256 characters long
+
+        if len(post_title) > 256:
+            post_title = (post_title[:253] + '...')
+
+        created_utc = int(post.created_utc)
+        created_utc = time.strftime('%Y-%m-%d %H:%M', time.gmtime(created_utc))
+
+        return {'post_id': str(post.id),
+                'post_url': post_url,
+                'post_author': str(post.author),
+                'nsfw': bool(post.over_18),
+                'post_title': str(post_title),
+                'post_score': int(post.score),
+                'post_length': len(post_text),
+                'post_text': post_text,
+                'post_type': post_type,
+                'post_permalink': "https://reddit.com" + str(post.permalink),
+                'post_subreddit': subreddit,
+                'created_utc': created_utc
+                }
 
     def __get_comments(self, post_id, comment_num):
 
@@ -198,24 +250,24 @@ class Reddit:
                     comment_body = str(submission.comments[x].body)
                     total_length = total_length + len(comment_body)
 
-                    # check if the total length of all comments combined doesnt exceed a limit (discord has a limit, staying well below that)
-                    if total_length < Config.r_comment_total_length:
+                    # check if the total length of all comments combined doesnt exceed a limit
+                    #  (discord has a limit, staying well below that) limiting to 1200
+                    if total_length < 1200:
                         if not skip_comment:
-                            comments.append({'id':str(submission.comments[x].id),
-                                             'body':str(submission.comments[x].body),
-                                             'author':str(submission.comments[x].author),
-                                             'score':int(submission.comments[x].score),
-                                             'created_utc':created_utc,
-                                             'link':"https://reddit.com" + str(submission.comments[x].permalink)})
+                            comments.append({'id': str(submission.comments[x].id),
+                                             'body': str(submission.comments[x].body),
+                                             'author': str(submission.comments[x].author),
+                                             'score': int(submission.comments[x].score),
+                                             'created_utc': created_utc,
+                                             'link': "https://reddit.com" + str(submission.comments[x].permalink)})
 
                     else:
                         total_length = total_length - len(comment_body)
 
-                        
             except IndexError:
                 pass
             except Exception as e:
                 raise UnknownException(str(e) + " COMMENTS")
-                #TODO: if an exception for this, fix it
+                # TODO: if an exception for this, fix it
 
         return comments

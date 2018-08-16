@@ -36,3 +36,7 @@ class GfycatMissingCredentials(Exception):
 
 class GfycatInvalidCredentials(Exception):
     pass
+
+
+class InvalidRedditURL(Exception):
+    pass
