@@ -16,7 +16,7 @@ bot = commands.Bot(command_prefix=Config.bot_prefix,
 reddit = None
 
 
-@bot.command(pass_context=True, description="Get posts from a Reddit comments link. Can also grab comments form that post")
+@bot.command(pass_context=True, description="Get posts from a Reddit comments link. Can also grab comments from that post")
 async def ru(ctx, url: str, *comment_count:int):
 
     if comment_count:
