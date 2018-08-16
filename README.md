@@ -28,7 +28,7 @@ Basically you need:
 #### Config File (config.ini)
 
 * Under discord.cred need your bot token
-* Under reddit.cred need to add your reddit credentials (including api keys). This is used by Praw.
+* Under reddit.cred need to add your reddit api stuff. This is used by PRAW.
 * Under Gfycat need to add Gfycat API Credentials. 
 
 ### Current Issues:
