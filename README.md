@@ -13,10 +13,11 @@ Current Commands:
 * -ri [subreddit] [amount of posts...] **- gets image-based posts only (gif, video etc)**
 * -rt [subreddit] [amount of posts...] **- gets text-based posts only (reddit or links)**
 * -rc [subreddit] [amount of comments to grab] **- gets a post (image/text) and displays x amount of top level comments**
-
+* -ru [reddit post URL] [amount of comments to grab] **- gets a post from a Reddit URL, displays x amount top-level of comments (opt)**
 ### Installing
 
 **Requirements:**
+
 `pip3 install -r requirements.txt`
 
 Basically you need:
