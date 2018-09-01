@@ -40,3 +40,7 @@ class GfycatInvalidCredentials(Exception):
 
 class InvalidRedditURL(Exception):
     pass
+
+
+class RedditOAuthException(Exception):
+    pass

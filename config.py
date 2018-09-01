@@ -33,6 +33,7 @@ class Config:
         self.r_skip_mod_posts = bool(config.get('reddit.default', 'skipmodposts', fallback=ConfigDefaults.r_skip_mod_posts))
         self.r_skip_stickied_posts = bool(config.get('reddit.default', 'skipstickedposts', fallback=ConfigDefaults.r_skip_stickied_posts))
         self.r_default_comment_count = int(config.get('reddit.default', 'default_comment_count', fallback=ConfigDefaults.r_default_comment_count))
+        self.r_tldrify = bool(config.get('reddit.default', 'tldrify', fallback=False))
         # gfycat
         self.r_gfycat_client_id = config.get('gfycat', 'client_id')
         self.r_gfycat_client_secret = config.get('gfycat', 'client_secret')

@@ -1,12 +1,13 @@
 import asyncio
-import praw
-import config
 import random
 import time
+
+from praw.exceptions import ClientException
+from prawcore.exceptions import NotFound
+
+import config
 from exceptions import *
 from urltype import UrlType
-from prawcore.exceptions import NotFound
-from praw.exceptions import ClientException
 
 Config = config.Config('config.ini')
 
@@ -26,6 +27,13 @@ class Reddit:
         url = kwargs.get('url', None)
         loop = asyncio.get_event_loop()
 
+        # check if we are authenticated with reddit correctly
+        # try:
+        #    self._praw_object.user.me()
+        # except OAuthException as e:
+        #    raise RedditOAuthException(str(e))
+        # except AttributeError:
+        #    raise RedditOAuthException
         # checking if the request is a url (for when we want to get a post from a url.# TODO: maybe post id?
         if request_type == 'url':  # subreddit is set to the url in this case
 

@@ -6,6 +6,7 @@ REDDIT EMBED TEMPLATES
 
 """
 
+
 class RedditPostEmbed:
 
     def __init__(self):

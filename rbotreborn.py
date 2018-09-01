@@ -1,19 +1,11 @@
-import discord
-import asyncio
 from discord.ext import commands
-import praw
 import logging
-import config
-from gfycat import Gfycat
-from custom_embeds import *
 from reddit import *
-from exceptions import *
 
 Config = config.Config('config.ini')
 bot = commands.Bot(command_prefix=Config.bot_prefix,
                    description='R-BotReborn\n https://github.com/colethedj/rbotreborn')
-# will hold the reddit instance
-reddit = None
+
 
 
 @bot.command(pass_context=True, description="Get posts from a Reddit comments link. Can also grab comments from that post")
@@ -105,7 +97,7 @@ async def reddit_handler(ctx, **kwargs):
         nsfw = False
 
     # start off with getting posts
-    red = Reddit(reddit)
+    red = Reddit(reddit2)
     error_embed = None
     try:
 
@@ -139,6 +131,13 @@ async def reddit_handler(ctx, **kwargs):
         error_embed.create_embed(title="Invalid Reddit Submission URL entered",
                                  description="Make sure the URL you entered is correct and links "
                                              "to a post.")
+
+    except RedditOAuthException as e:
+        error_embed = RedditErrorEmbed()
+        error_embed.create_embed(title="Reddit Authentication Failure",
+                                 description="Make sure you have enter credentials and that they are correct"
+                                             "in the config file. Also make sure only application using your "
+                                             "API credentials at once. " + str(e))
     except UnknownException as e:
         error_embed = RedditErrorEmbed()
         error_embed.create_embed(title="Unknown Error",
@@ -153,6 +152,7 @@ async def reddit_handler(ctx, **kwargs):
     # handle the post types
 
     post_type = post.get('post_type')
+    post_text = post.get('post_text')
     image_url = "NONE"  # had issues with None being turned to a str type for some reason
     if post_type != "link" and post_type != "reddit":
 
@@ -173,46 +173,28 @@ async def reddit_handler(ctx, **kwargs):
 
                 processing_embed = GfycatLoadingEmbed()
                 await bot.edit_message(bot_message, embed=processing_embed.get_embed())
-                try:
-                    post_gfycat = Gfycat(Config.r_gfycat_client_id, Config.r_gfycat_client_secret)
-                    gfyjson = await post_gfycat.get_url_from_link(str(post.get('post_url')))
-                    print(gfyjson)
-                    image_url = gfyjson['5mb_gif_url']
-                except KeyError as e:
-                    error_embed = GfycatErrorEmbed()
-                    error_embed.create_embed(title="Something went wrong with processing the GIF",
-                                             description="KeyError. " + str(e))
-                except GfycatProcessError as e:
-                    error_embed = GfycatErrorEmbed()
-                    error_embed.create_embed(title="Something went wrong when processing the GIF",
-                                             description="GfycatProcessError: " + str(e))
-                except GfycatMissingCredentials:
-                    error_embed = GfycatErrorEmbed()
-                    error_embed.create_embed(title="Missing Gfycat API Credentials",
-                                             description="Make sure your "
-                                                         "client id and client secret are in the config file"
-                                                         " and correct.")
 
-                except GfycatInvalidCredentials:
-                    error_embed = GfycatErrorEmbed()
-                    error_embed.create_embed(title="Invalid Gfycat API Credentials",
-                                             description="Make sure your "
-                                                         "client id and client secret are in the config file"
-                                                         " and correct."
-                                             )
-                except UnknownException as e:
-                    error_embed = GfycatErrorEmbed()
-                    error_embed.create_embed(title="Unknown Exception in Gfycat.py",
-                                             description=str(e))
-                finally:
-                    if error_embed is not None:
+                image_url = await gfycat_url_handler(post.get('post_url'))
+
+                if image_url is discord.Embed:
                         # time to send error to channel
                         await bot.edit_message(bot_message, embed=error_embed.get_embed())
+                        image_url = None
                         return
 
         elif post_type == "gif" or post_type == "image":  # either gif or image
 
             image_url = post.get('post_url')
+
+    elif post_type == "link":
+
+        if Config.r_tldrify:
+            # tldrify if user wants
+            # TODO: add this function
+            # we are going to TLDRify the link (but only if there is not text to start with)
+            if post_text == "":
+                post_text = await tldrify_url(post.get('url'))
+
 
     # create reddit embed
     comment_embed = None
@@ -225,7 +207,7 @@ async def reddit_handler(ctx, **kwargs):
                             author=str(post.get('post_author')),
                             nsfw=bool(post.get('nsfw')),
                             score=int(post.get('post_score')),
-                            description=str(post.get('post_text')),
+                            description=str(post_text),
                             image=str(image_url),
                             time=str(post.get('created_utc')) + " UTC",
                             subreddit=str(post.get('post_subreddit'))
@@ -255,9 +237,12 @@ async def on_ready():
     logging.info('Logged into discord as:')
     logging.info(bot.user.name)
     logging.info(bot.user.id)
+    print(vars(reddit2))
+    print(dir(reddit2))
 
     logging.info("Logged into reddit as:")
-    # logging.info(reddit.user.me())
+    # logging.info(reddit2.user.me())
+
     logging.info('------')
     await bot.change_presence(game=discord.Game(name=Config.bot_game))
 
@@ -270,11 +255,15 @@ def start():
 
 
 # connect to reddit (instance)
+
+# connect to reddit (instance)
 def connect_reddit():
-    global reddit
     reddit = praw.Reddit(client_id=Config.r_client_id,
                          client_secret=Config.r_client_secret,
-                         user_agent=Config.r_user_agent)
+                         user_agent=Config.r_user_agent,
+                         )
+
+    return reddit
 
 
 if __name__ == '__main__':
@@ -283,7 +272,8 @@ if __name__ == '__main__':
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-    connect_reddit()
+
+    reddit2 = connect_reddit()
 
     start()
 
