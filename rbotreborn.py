@@ -8,7 +8,7 @@ from gfycat import Gfycat
 from custom_embeds import *
 from reddit import *
 from exceptions import *
-from handlers import *
+from processors import *
 Config = config.Config('config.ini')
 bot = commands.Bot(command_prefix=Config.bot_prefix,
                    description='R-BotReborn\n https://github.com/colethedj/rbotreborn')
@@ -183,7 +183,7 @@ async def reddit_handler(ctx, **kwargs):
 
                 image_url = await gfycat_url_handler(post.get('post_url'))
 
-                if image_url is discord.Embed:
+                if image_url is GfycatErrorEmbed:
                         # time to send error to channel
                         await bot.edit_message(bot_message, embed=error_embed.get_embed())
                         image_url = None
