@@ -4,11 +4,22 @@ handlers for various url image types returned and need to be processed in a way 
 
 
 """
+from __future__ import absolute_import
+from __future__ import division, print_function, unicode_literals
 
 from custom_embeds import *
 from exceptions import *
 from gfycat import Gfycat
 from rbotreborn import Config
+import asyncio
+# SUMY imports
+
+from sumy.parsers.html import HtmlParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lsa import LsaSummarizer as Summarizer
+from sumy.nlp.stemmers import Stemmer
+from sumy.utils import get_stop_words
+
 
 
 # from PyTeaserPython3.pyteaser import SummarizeUrl
@@ -54,14 +65,30 @@ async def gfycat_url_handler(url: str):
 # use like pyteaser but need to add a cli arguments to be able to run python2 code
 # then save output to a file
 # and make this optional
-# async def tldrify_url(url):
-#     print("tldrifying")
-#     loop = asyncio.get_event_loop()
-#
-#     def do_stuff():
-#         return SummarizeUrl(url)
-#
-#     future = loop.run_in_executor(None, do_stuff)
-#     summary = await future
-#
-#     return summary[0]
+
+
+async def tldrify_url(url):
+    print("tldrifying")
+    print(url)
+    loop = asyncio.get_event_loop()
+
+    # TODO: have these in config file
+
+    LANGUAGE="english"
+    SENTENCES_COUNT="3"
+
+
+    def do_stuff():
+        summard = ""
+        parser = HtmlParser.from_url(url, Tokenizer(LANGUAGE))
+        stemmer = Stemmer(LANGUAGE)
+        summarizer = Summarizer(stemmer)
+        summarizer.stop_words = get_stop_words(LANGUAGE)
+        for sentence in summarizer(parser.document, SENTENCES_COUNT):
+            summard = summard + " " + str(sentence)
+        return summard
+
+    future = loop.run_in_executor(None, do_stuff)
+    summary = await future
+
+    return summary

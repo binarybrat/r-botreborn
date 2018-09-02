@@ -1,7 +1,14 @@
+import discord
+import asyncio
 from discord.ext import commands
+import praw
 import logging
+import config
+from gfycat import Gfycat
+from custom_embeds import *
 from reddit import *
-
+from exceptions import *
+from handlers import *
 Config = config.Config('config.ini')
 bot = commands.Bot(command_prefix=Config.bot_prefix,
                    description='R-BotReborn\n https://github.com/colethedj/rbotreborn')
@@ -192,8 +199,8 @@ async def reddit_handler(ctx, **kwargs):
             # tldrify if user wants
             # TODO: add this function
             # we are going to TLDRify the link (but only if there is not text to start with)
-            if post_text == "":
-                post_text = await tldrify_url(post.get('url'))
+            if post_text ==  "":
+                post_text = "TL;DR: " + await tldrify_url(post.get('post_url'))
 
 
     # create reddit embed
@@ -241,7 +248,7 @@ async def on_ready():
     print(dir(reddit2))
 
     logging.info("Logged into reddit as:")
-    # logging.info(reddit2.user.me())
+    #logging.info(reddit2.user.me())
 
     logging.info('------')
     await bot.change_presence(game=discord.Game(name=Config.bot_game))
@@ -258,10 +265,12 @@ def start():
 
 # connect to reddit (instance)
 def connect_reddit():
+
+
     reddit = praw.Reddit(client_id=Config.r_client_id,
                          client_secret=Config.r_client_secret,
                          user_agent=Config.r_user_agent,
-                         )
+                        )
 
     return reddit
 
