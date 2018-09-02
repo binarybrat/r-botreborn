@@ -123,7 +123,7 @@ async def reddit_handler(ctx, **kwargs):
     except SubredditIsNSFW:
         error_embed = RedditErrorEmbed()
         error_embed.create_embed(title="r/" + str(subreddit) + " is a NSFW subreddit",
-                                 description=":underage: This channel is not set as a NSFW channel. "
+                                 description="This channel is not set as a NSFW channel. "
                                              "If you want to add this channel as a NSFW channel, "
                                              "use the command -addnsfw.")
     except NoPostsReturned:

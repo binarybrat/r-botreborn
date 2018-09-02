@@ -1,10 +1,8 @@
 import asyncio
 import random
 import time
-
 from praw.exceptions import ClientException
 from prawcore.exceptions import NotFound
-
 import config
 from exceptions import *
 from urltype import UrlType

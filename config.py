@@ -101,14 +101,12 @@ class UpdateConfig:
         else:
             nsfw_servers[server_id] = [channel_id]
 
-
         nsfw_c = json.dumps(nsfw_servers)
         self.__config['discord.bot']['nsfwchannels'] = nsfw_c
 
         with open(self.__config_file, 'w') as configfile:
             self.__config.write(configfile)
             configfile.close()
-
 
         return nsfw_servers, message
 
