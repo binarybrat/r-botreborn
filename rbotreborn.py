@@ -167,7 +167,7 @@ async def reddit_handler(ctx, **kwargs):
 
             if post_type == "gfycat":
 
-                post_gfycat = Gfycat(Config.r_gfycat_client_id, Config.r_gfycat_client_secret)
+                post_gfycat = Gfycat(Config.gfycat_client_id, Config.gfycat_client_secret)
                 gfyjson = await post_gfycat.get_gfy_info(str(post.get('post_url'))[19:(len(str(post.get('post_url'))))])
                 print(gfyjson)  # TODO: fails if starts with http://
                 image_url = gfyjson['gfyItem']['max5mbGif']
@@ -195,12 +195,12 @@ async def reddit_handler(ctx, **kwargs):
 
     elif post_type == "link":
 
-        if Config.r_tldrify:
+        if Config.enable_sumy:
             # tldrify if user wants
             # TODO: add this function
             # we are going to TLDRify the link (but only if there is not text to start with)
             if post_text ==  "":
-                post_text = "TL;DR: " + await tldrify_url(post.get('post_url'))
+                post_text = "**TL;DR:** " + await sumy_url(post.get('post_url'))
 
 
     # create reddit embed

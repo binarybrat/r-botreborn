@@ -212,7 +212,7 @@ class Reddit:
         post_text = post.selftext
         post_title = post.title
         if len(post_text) > 1850:
-            post_text = (post_text[:1850] + '... [go to reddit post to read more]')
+            post_text = (post_text[:1850] + '... [go to link to read more]')
 
         # we also need to check the title length as discord embed titles are limited to 256 characters long
 
