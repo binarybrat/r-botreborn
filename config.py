@@ -33,7 +33,7 @@ class Config:
         self.r_skip_mod_posts = bool(config.get('reddit.default', 'skipmodposts', fallback=ConfigDefaults.r_skip_mod_posts))
         self.r_skip_stickied_posts = bool(config.get('reddit.default', 'skipstickedposts', fallback=ConfigDefaults.r_skip_stickied_posts))
         self.r_default_comment_count = int(config.get('reddit.default', 'default_comment_count', fallback=ConfigDefaults.r_default_comment_count))
-
+        self.r_max_comment_count = int(config.get('reddit.default', 'max_comment_count', fallback=ConfigDefaults.r_max_comment_count))
         # gfycat
         self.gfycat_client_id = config.get('gfycat', 'client_id')
         self.gfycat_client_secret = config.get('gfycat', 'client_secret')
@@ -42,6 +42,7 @@ class Config:
         self.enable_sumy = bool(config.get('sumy', 'enabled', fallback=ConfigDefaults.sumy_enabled))
         self.sumy_lang = str(config.get('sumy', 'language', fallback=ConfigDefaults.sumy_lang))
         self.sumy_num_sentences = str(config.get('sumy', 'number_of_sentences', fallback=ConfigDefaults.sumy_num_sentences))
+
 
 class ConfigDefaults:
     
@@ -58,6 +59,8 @@ class ConfigDefaults:
     sumy_lang = 'english'
     sumy_num_sentences = 1
     sumy_enabled = True
+    r_max_comment_count = 50
+
 
 class UpdateConfig:
 

@@ -20,6 +20,8 @@ async def ru(ctx, url: str, *comment_count:int):
 
     if comment_count:
         comment_count = comment_count[0]
+        if comment_count > Config.r_max_comment_count:
+            comment_count = Config.r_max_comment_count
     else:
         comment_count = 0
     await reddit_handler(ctx, url=url, comment_num=comment_count)
@@ -29,8 +31,10 @@ async def ru(ctx, url: str, *comment_count:int):
 async def rc(ctx, subreddit: str, *comment_count: int):
     if comment_count:
         comment_count = comment_count[0]
+        if comment_count > Config.r_max_comment_count:
+            comment_count = Config.r_max_comment_count
     else:
-        comment_count = Config.r_postcount
+        comment_count = Config.r_default_comment_count
 
     await reddit_handler(ctx, subreddit=subreddit, post_count=Config.r_postcount, comment_num=comment_count)
 
@@ -94,7 +98,7 @@ async def reddit_handler(ctx, **kwargs):
     # send a message to show the requester whats happening
 
     loading_message = RedditLoadingEmbed()
-    loading_message.create_embed(subreddit=('unknown' if subreddit is None else subreddit), post_count=post_count)
+    loading_message.create_embed(subreddit=('unknown' if subreddit is None else subreddit), post_count=post_count, comment_count=comment_num)
     bot_message = await bot.send_message(ctx.message.channel, embed=loading_message.get_embed())
     # check if discord channel is marked as NSFW
 

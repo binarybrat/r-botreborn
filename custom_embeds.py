@@ -58,8 +58,9 @@ class RedditLoadingEmbed(RedditPostEmbed):
     def create_embed(self, **kwargs):
         subreddit = str(kwargs.get('subreddit', "unknown")).lower()
         post_count = str(kwargs.get('post_count', "0"))
+        comment_count = int(kwargs.get('comment_count', 0))
         self._embed = discord.Embed(title="Getting Posts... This will take a moment",
-                                    colour=self._colour).set_footer(text=str(post_count) + " posts from r/" + str(subreddit))
+                                    colour=self._colour).set_footer(text=str(post_count) + " posts from r/" + str(subreddit) + " with " + str(comment_count) + " comments.")
 
 
 class RedditErrorEmbed(RedditPostEmbed):
