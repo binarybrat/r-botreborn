@@ -25,6 +25,10 @@ Basically you need:
 * praw
 * sumy
 
+sumy requires you to download some stuff
+
+`python3 -c "import nltk; nltk.download('punkt')"`
+
 
 #### Config File (config.ini)
 
