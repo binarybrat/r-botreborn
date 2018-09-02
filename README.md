@@ -23,6 +23,11 @@ Current Commands:
 Basically you need:
 * discord.py
 * praw
+* sumy
+
+sumy requires you to download some stuff
+
+`python3 -c "import nltk; nltk.download('punkt')"`
 
 
 #### Config File (config.ini)
@@ -31,9 +36,12 @@ Basically you need:
 * Under reddit.cred need to add your reddit api stuff. This is used by PRAW.
 * Under Gfycat need to add Gfycat API Credentials. 
 
-### Current Issues:
+### Current Issues & TODO:
 
 **Probably Lots**
 * Imgur links currently not supported yet (need to maybe a. use imgur api to grab image url or b. some time of parser)
-
+* Show reddit gold
+* Adapative sentence num for summarising articles
+* rss feed
+* permissions
 #### Note: this was just a little project I worked on while learning Python, so the code quality could be very poor and is very messy. It "works"
