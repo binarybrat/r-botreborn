@@ -66,20 +66,50 @@ class UpdateConfig:
         self.__config.read(config_file)
         self.__config_file = config_file
 
-    def update_nsfw_channels(self, channel):
-        nsfw_channels = json.loads(self.__config.get('discord.bot', 'nsfwchannels', fallback=None))
+    def remove_nsfw_channels(self, server_id, channel_id):
+
+        nsfw_servers = json.loads(self.__config.get('discord.bot', 'nsfwchannels', fallback=None))
         message = None
-        if channel not in nsfw_channels:
-            nsfw_channels.append(channel)
-
-            nsfw_c = json.dumps(nsfw_channels)
-            self.__config['discord.bot']['nsfwchannels'] = nsfw_c
-
-            with open(self.__config_file, 'w') as configfile:
-                self.__config.write(configfile)
-                configfile.close()
+        if server_id in nsfw_servers.keys():
+            if channel_id in nsfw_servers[server_id]:
+                nsfw_servers[server_id].remove(channel_id)
+            else:
+                message = "This channel is not set as a NSFW channel!"
         else:
-            message = "This channel is already set as a NSFW channel!"
-        return nsfw_channels, message
+            message = "This channel is not set as a NSFW channel!"
+
+        nsfw_c = json.dumps(nsfw_servers)
+        self.__config['discord.bot']['nsfwchannels'] = nsfw_c
+
+        with open(self.__config_file, 'w') as configfile:
+            self.__config.write(configfile)
+            configfile.close()
+
+        return nsfw_servers, message
+
+    def add_nsfw_channels(self, server_id, channel_id):
+
+        nsfw_servers = json.loads(self.__config.get('discord.bot', 'nsfwchannels', fallback=None))
+        message = None
+
+        # {server:[that servers nsfw channels], server:[another servers nsfw channels]}
+        if server_id in nsfw_servers.keys():
+            if channel_id not in nsfw_servers[server_id]:
+                nsfw_servers[server_id].append(channel_id)
+            else:
+                message = "This channel is already set as a NSFW channel!"
+        else:
+            nsfw_servers[server_id] = [channel_id]
+
+
+        nsfw_c = json.dumps(nsfw_servers)
+        self.__config['discord.bot']['nsfwchannels'] = nsfw_c
+
+        with open(self.__config_file, 'w') as configfile:
+            self.__config.write(configfile)
+            configfile.close()
+
+
+        return nsfw_servers, message
 
 

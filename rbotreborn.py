@@ -14,8 +14,8 @@ bot = commands.Bot(command_prefix=Config.bot_prefix,
                    description='R-BotReborn\n https://github.com/colethedj/rbotreborn')
 
 
-
-@bot.command(pass_context=True, description="Get posts from a Reddit comments link. Can also grab comments from that post")
+@bot.command(pass_context=True, description="Get posts from a Reddit comments link. "
+                                            "Can also grab comments from that post")
 async def ru(ctx, url: str, *comment_count:int):
 
     if comment_count:
@@ -98,7 +98,7 @@ async def reddit_handler(ctx, **kwargs):
     bot_message = await bot.send_message(ctx.message.channel, embed=loading_message.get_embed())
     # check if discord channel is marked as NSFW
 
-    if str(ctx.message.channel) in Config.nsfw_channels:
+    if str(ctx.message.channel.id) in Config.nsfw_channels[ctx.message.server.id]:
         nsfw = True
     else:
         nsfw = False
@@ -227,15 +227,29 @@ async def reddit_handler(ctx, **kwargs):
 
 @bot.command(pass_context=True, description="Allow NSFW on current channel")
 async def addnsfw(ctx):
-    new_channels, message = config.UpdateConfig('config.ini').update_nsfw_channels(str(ctx.message.channel))
+    new_channels, message = config.UpdateConfig('config.ini').add_nsfw_channels(str(ctx.message.server.id), str(ctx.message.channel.id))
     Config.nsfw_channels = new_channels
 
     if message is None:
-        embed = discord.Embed(title="Added this channel as a NSFW Channel")
+        embed = discord.Embed(title=":warning: Added this channel as a NSFW Channel")
     else:
-        embed = discord.Embed(title=str(message))
-    embed.set_thumbnail(url='https://cdn.discordapp.com/emojis/282783839980355585.png')
+        embed = discord.Embed(title=":warning:" + str(message))
+
     await bot.send_message(ctx.message.channel, embed=embed)
+
+@bot.command(pass_context=True, description="Allow NSFW on current channel")
+async def removensfw(ctx):
+    new_channels, message = config.UpdateConfig('config.ini').remove_nsfw_channels(str(ctx.message.server.id), str(ctx.message.channel.id))
+    Config.nsfw_channels = new_channels
+
+    if message is None:
+        embed = discord.Embed(title=":wastebasket: Removed this channel as a NSFW Channel")
+    else:
+        embed = discord.Embed(title=":warning: " + str(message))
+
+    await bot.send_message(ctx.message.channel, embed=embed)
+
+
 
 
 @bot.event

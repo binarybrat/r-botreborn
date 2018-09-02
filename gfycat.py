@@ -1,8 +1,6 @@
 import asyncio
 import logging
-
 import requests
-
 from exceptions import *
 
 logging = logging.basicConfig(level=logging.DEBUG)
