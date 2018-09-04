@@ -14,6 +14,7 @@ Current Commands:
 * -rt [subreddit] [amount of posts...] **- gets text-based posts only (reddit or links)**
 * -rc [subreddit] [amount of comments to grab] **- gets a post (image/text) and displays x amount of top level comments**
 * -ru [reddit post URL] [amount of comments to grab] **- gets a post from a Reddit URL, displays x amount top-level of comments (opt)**
+* -rcl [amount of comments to grab] **-get x amount of comments from last post in channel**
 ### Installing
 
 **Requirements:**
