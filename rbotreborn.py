@@ -14,6 +14,41 @@ bot = commands.Bot(command_prefix=Config.bot_prefix,
                    description='R-BotReborn\n https://github.com/colethedj/rbotreborn')
 
 
+@bot.command(pass_context=True, description="Get x amoutn of comments from the last post")
+async def rcl(ctx, *comment_count:int):
+    await bot.delete_message(ctx.message)
+
+    if comment_count:
+        comment_count = comment_count[0]
+        if comment_count > Config.r_max_comment_count:
+            comment_count = Config.r_max_comment_count
+    else:
+        comment_count = Config.r_default_comment_count
+    loading_message = RedditLoadingEmbed()
+    loading_message.create_embed(subreddit='unknown', post_count=1,
+                                 comment_count=comment_count,
+                                 custom_message="Getting comments... This will take a moment")
+    bot_message = await bot.send_message(ctx.message.channel, embed=loading_message.get_embed())
+
+    try:
+        post_id = Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]
+        getcomments = Reddit(reddit2)
+        comments = getcomments.get_comments(post_id, comment_count)
+        embed = RedditCommentEmbed()
+        embed.create_embed(comments=comments)
+    except KeyError:
+        embed = RedditErrorEmbed()
+        embed.create_embed(title=":warning: There is no last post from this channel saved",
+                           )
+    except UnknownException as e:
+        embed = RedditErrorEmbed()
+        embed.create_embed(title=":warning: Error getting comments from that post: " + str(e),
+                           )
+        # no saved post from this channel
+
+    await bot.edit_message(bot_message, embed=embed.get_embed())
+
+
 @bot.command(pass_context=True, description="Get posts from a Reddit comments link. "
                                             "Can also grab comments from that post")
 async def ru(ctx, url: str, *comment_count:int):
@@ -164,6 +199,7 @@ async def reddit_handler(ctx, **kwargs):
 
     post_type = post.get('post_type')
     post_text = post.get('post_text')
+    post_id = post.get('post_id')
     image_url = "NONE"  # had issues with None being turned to a str type for some reason
     if post_type != "link" and post_type != "reddit":
 
@@ -223,10 +259,21 @@ async def reddit_handler(ctx, **kwargs):
                             time=str(post.get('created_utc')) + " UTC",
                             subreddit=str(post.get('post_subreddit'))
                             )
+
+
+
     await bot.edit_message(bot_message, embed=post_embed.get_embed())
 
     if comment_embed is not None:
         await bot.send_message(ctx.message.channel, embed=comment_embed.get_embed())
+
+    # now we will save the post id
+
+    if str(ctx.message.server.id) in Config.r_last_post_url:
+        Config.r_last_post_url[str(ctx.message.server.id)][str(ctx.message.channel.id)] = post_id
+    else:
+        Config.r_last_post_url[str(ctx.message.server.id)] = {str(ctx.message.channel.id): post_id}
+
 
 
 @bot.command(pass_context=True, description="Allow NSFW on current channel")
@@ -241,6 +288,7 @@ async def addnsfw(ctx):
 
     await bot.send_message(ctx.message.channel, embed=embed)
 
+
 @bot.command(pass_context=True, description="Allow NSFW on current channel")
 async def removensfw(ctx):
     new_channels, message = config.UpdateConfig('config.ini').remove_nsfw_channels(str(ctx.message.server.id), str(ctx.message.channel.id))
@@ -252,7 +300,6 @@ async def removensfw(ctx):
         embed = discord.Embed(title=":warning: " + str(message))
 
     await bot.send_message(ctx.message.channel, embed=embed)
-
 
 
 

@@ -41,7 +41,7 @@ class Reddit:
                 return self.__get_post_from_url(url)
 
             def get_the_comments():
-                return self.__get_comments(post_data.get('post_id'), comment_count)
+                return self.get_comments(post_data.get('post_id'), comment_count)
             future10 = loop.run_in_executor(None, get_from_url)
             post_data = await future10
 
@@ -104,7 +104,7 @@ class Reddit:
 
         if comment_count > 0:
             def get_the_comments():
-                return self.__get_comments(posts[random_post_num].get('post_id'), comment_count)
+                return self.get_comments(posts[random_post_num].get('post_id'), comment_count)
 
             future4 = loop.run_in_executor(None, get_the_comments)
             comments = await future4
@@ -234,7 +234,7 @@ class Reddit:
                 'created_utc': created_utc
                 }
 
-    def __get_comments(self, post_id, comment_num):
+    def get_comments(self, post_id, comment_num):
 
         submission = self._praw_object.submission(id=str(post_id))
 
