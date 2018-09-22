@@ -87,13 +87,14 @@ class RedditCommentEmbed(RedditPostEmbed):
     def __init__(self):
         super().__init__()
         self._colour = 0xf1c40f
+
     def create_embed(self, **kwargs):
         comments = kwargs.get('comments', [])
 
-        self._embed = discord.Embed(title="Comments", description=str(len(comments)) + " top-level comments recieved", colour=self._colour)
+        self._embed = discord.Embed(title="Comments", description=str(len(comments)) + " top-level comments received", colour=self._colour)
         for comment in comments:
             try:
-                self._embed.add_field(name="u/" + str(comment.get('author') + " | Score: " + str(comment.get('score')) + " | " + str(comment.get('created_utc')) + " UTC"), value=str(comment.get('body')), inline=False)
+                self._embed.add_field(name="u/" + str(comment.author) + " | Score: " + str(comment.score) + " | " + str(comment.created_utc) + " UTC", value=str(comment.body), inline=False)
             except IndexError:
                 pass
         self._embed.set_footer(icon_url=self._reddit_icon_url, text="reddit")

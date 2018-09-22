@@ -250,25 +250,24 @@ class Reddit:
                     if Config.r_skip_stickied_posts and bool(submission.comments[x].stickied):
                         skip_comment = True
 
-                    created_utc = int(submission.comments[x].created_utc)
-                    created_utc = time.strftime('%Y-%m-%d %H:%M', time.gmtime(created_utc))
-
-                    comment_body = str(submission.comments[x].body)
-                    total_length = total_length + len(comment_body)
+                    total_length = total_length + len(str(submission.comments[x].body))
 
                     # check if the total length of all comments combined doesnt exceed a limit
-                    #  (discord has a limit, staying well below that) limiting to 1200
+                    # (discord has a limit, staying well below that) limiting to 1200
+
                     if total_length < 1200:
                         if not skip_comment:
-                            comments.append({'id': str(submission.comments[x].id),
-                                             'body': str(submission.comments[x].body),
-                                             'author': str(submission.comments[x].author),
-                                             'score': int(submission.comments[x].score),
-                                             'created_utc': created_utc,
-                                             'link': "https://reddit.com" + str(submission.comments[x].permalink)})
+
+                            # convert the time to human readable
+                            submission.comments[x].created_utc = time.strftime('%Y-%m-%d %H:%M', time.gmtime(
+                                int(submission.comments[x].created_utc)))
+
+                            # change the link of the comment to full url
+                            submission.comments[x].permalink = "https://reddit.com" + str(submission.comments[x].permalink)
+                            comments.append(submission.comments[x])
 
                     else:
-                        total_length = total_length - len(comment_body)
+                        total_length = total_length - len(str(submission.comments[x].body))
 
             except IndexError:
                 pass
