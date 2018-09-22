@@ -14,7 +14,7 @@ bot = commands.Bot(command_prefix=Config.bot_prefix,
                    description='R-BotReborn\n https://github.com/colethedj/rbotreborn')
 
 
-@bot.command(pass_context=True, description="Get x amoutn of comments from the last post")
+@bot.command(pass_context=True, description="Get x amount of comments from the last post")
 async def rcl(ctx, *comment_count:int):
     await bot.delete_message(ctx.message)
 
