@@ -1,6 +1,5 @@
 # R-BotReborn
-## A (very basic) discord bot written in Python 3 that displays Reddit posts in discord
-Using discord.py
+## A simple python discord bot that displays Reddit posts in discord
 
 ### Usage
 
