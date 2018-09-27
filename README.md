@@ -36,7 +36,4 @@ sumy requires you to download some stuff
 * Under reddit.cred need to add your reddit api stuff. This is used by PRAW.
 * Under Gfycat need to add Gfycat API Credentials. 
 
-#### Hosting
-Works well on a Free Tier AWS EC2 instance
-
 #### Note: this was just a little project I worked on while learning Python, so the code quality could be very poor and is very messy. It "works"
