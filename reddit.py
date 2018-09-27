@@ -231,7 +231,10 @@ class Reddit:
                 'post_type': post_type,
                 'post_permalink': "https://reddit.com" + str(post.permalink),
                 'post_subreddit': subreddit,
-                'created_utc': created_utc
+                'created_utc': created_utc,
+                'post_preview': str(post.thumbnail),
+                'gilded': int(post.gilded)
+
                 }
 
     def get_comments(self, post_id, comment_num):

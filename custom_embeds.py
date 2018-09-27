@@ -1,5 +1,6 @@
 import discord
-
+from exceptions import EmbedNotExistError
+from time import gmtime, strftime
 """
 
 REDDIT EMBED TEMPLATES
@@ -27,16 +28,23 @@ class RedditPostEmbed:
         description = kwargs.get('description', discord.Embed.Empty)
         title = kwargs.get('title', discord.Embed.Empty)
         time = kwargs.get('time', None)
+        gilded = int(kwargs.get('gilded', 0))
         if is_nsfw:
             nsfw_text = " | NSFW"
         else:
             nsfw_text = ""
 
+        if gilded > 0:
+            if gilded > 1:
+                gilded_text = " | ⭐ x" + str(gilded)
+            else:
+                gilded_text = " | ⭐"
+        else:
+            gilded_text = ""
+
         self._embed = discord.Embed(title=title, url=url, description=description, colour=self._colour)
 
-        print(type(image_url))
         if image_url != "NONE":
-            print("setting image")
             self._embed.set_image(url=image_url)
 
         if time:
@@ -44,7 +52,7 @@ class RedditPostEmbed:
         else:
             time = " "
         self._embed.set_footer(text="u/" + author + " via r/" + subreddit + " | Score: " + str(
-            post_score) + nsfw_text + time,
+            post_score) + nsfw_text + time + gilded_text,
                          icon_url=self._reddit_icon_url)
 
 
@@ -86,18 +94,77 @@ class RedditCommentEmbed(RedditPostEmbed):
 
     def __init__(self):
         super().__init__()
-        self._colour = 0xf1c40f
+        self._colour = 0x206694
 
     def create_embed(self, **kwargs):
         comments = kwargs.get('comments', [])
+        post_title = kwargs.get('title', "[Unknown Post Reference]")
+        post_link = kwargs.get('url', discord.Embed.Empty)
+        post_media_type = kwargs.get('post_type', None)
+        preview = kwargs.get('preview', None)
 
-        self._embed = discord.Embed(title="Comments", description=str(len(comments)) + " top-level comments received", colour=self._colour)
+        if len(post_title) > 50:
+            post_title = (post_title[:50] + '...')
+
+        if post_media_type is not None:
+            type = "[" + str(post_media_type) + "]"
+        else:
+            type = ""
+        title = "Comments for: " + post_title + " " + type
+
+        self._embed = discord.Embed(title=title, url=post_link, description="*displaying " + str(len(comments)) + " comments*", colour=self._colour, inline=False)
+
+        if preview is not None:
+            if "http" in preview.lower():
+                self._embed.set_thumbnail(url=preview)
+
         for comment in comments:
             try:
-                self._embed.add_field(name="u/" + str(comment.author) + " | Score: " + str(comment.score) + " | " + str(comment.created_utc) + " UTC", value=str(comment.body), inline=False)
+                if comment.edited:
+                    edited_text = " | (edited)"
+                else:
+                    edited_text = " "
+
+                if comment.is_submitter:
+                    op_text = "**📢**"
+                else:
+                    op_text = ""
+
+                if int(comment.gilded) > 0:
+                    if int(comment.gilded) > 1:
+                        gilded_text = " | ⭐ x" + str(comment.gilded)
+                    else:
+                        gilded_text = " | ⭐"
+                else:
+                    gilded_text = ""
+
+                if comment.author_flair_text:
+                    flair = " `" + str(comment.author_flair_text) + "`"
+                else:
+                    flair = ""
+                self._embed.add_field(name=op_text + " u/" + str(comment.author) + flair, value=str(comment.body) + "\n\n [L](" + str(comment.permalink) + ") `Score: " + str(comment.score) + " | " + str(comment.created_utc) + " GMT " + str(edited_text) + gilded_text + "`", inline=False)
+
             except IndexError:
                 pass
-        self._embed.set_footer(icon_url=self._reddit_icon_url, text="reddit")
+
+        self.__set_footer()
+
+    def update_embed(self, **kwargs):
+
+        status_message = kwargs.get('status_message', None)
+        if self._embed is not None:
+            self.__set_footer(status_message)
+
+        else: # if an embed has not already been created then we will raise an exception
+            raise EmbedNotExistError
+
+    def __set_footer(self, **kwargs):
+        status_message = kwargs.get('status_message', "Last Updated " + str(strftime("%Y-%m-%d %H:%M:%S", gmtime())) + " GMT")
+        other_message = kwargs.get('other_message', " ")
+
+        if other_message is not " ":
+            other_message = " | " + other_message
+        self._embed.set_footer(icon_url=self._reddit_icon_url, text=status_message + other_message)
 
 
 
@@ -142,13 +209,15 @@ class GfycatEmbed:
 
 class GfycatLoadingEmbed(GfycatEmbed):
 
-    def __init__(self):
+    def __init__(self, original_url:str):
         super().__init__()
-        self._loading_gif = 'https://www.drupal.org/files/issues/throbber_13.gif'
+        # CREDIT TO: http://pluspng.com/png-45185.html
+        self._loading_gif = 'http://pluspng.com/img-png/loader-png-powered-by-velaro-live-chat-512.gif'
 
         self.create_embed(title='Encoding on Gfycat',
                           description='Please wait, this may take a while',
-                          thumbnail=self._loading_gif
+                          thumbnail=self._loading_gif,
+                          url=original_url
                           )
 
 

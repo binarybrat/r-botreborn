@@ -9,13 +9,14 @@ from custom_embeds import *
 from reddit import *
 from exceptions import *
 from processors import *
+
 Config = config.Config('config.ini')
 bot = commands.Bot(command_prefix=Config.bot_prefix,
                    description='R-BotReborn\n https://github.com/colethedj/rbotreborn')
 
 
 @bot.command(pass_context=True, description="Get x amount of comments from the last post")
-async def rcl(ctx, *comment_count:int):
+async def rcl(ctx, *comment_count: int):
     await bot.delete_message(ctx.message)
 
     if comment_count:
@@ -29,13 +30,18 @@ async def rcl(ctx, *comment_count:int):
                                  comment_count=comment_count,
                                  custom_message="Getting comments... This will take a moment")
     bot_message = await bot.send_message(ctx.message.channel, embed=loading_message.get_embed())
-
+    print(Config.r_last_post_url)
+    print(Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['id'])
     try:
-        post_id = Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]
+        post_id = Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['id']
         getcomments = Reddit(reddit2)
         comments = getcomments.get_comments(post_id, comment_count)
         embed = RedditCommentEmbed()
-        embed.create_embed(comments=comments)
+        embed.create_embed(comments=comments,
+                           title=Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['title'],
+                           url=Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['url'],
+                           post_type=Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['type'],
+                           preview=Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['preview'])
     except KeyError:
         embed = RedditErrorEmbed()
         embed.create_embed(title=":warning: There is no last post from this channel saved",
@@ -51,8 +57,7 @@ async def rcl(ctx, *comment_count:int):
 
 @bot.command(pass_context=True, description="Get posts from a Reddit comments link. "
                                             "Can also grab comments from that post")
-async def ru(ctx, url: str, *comment_count:int):
-
+async def ru(ctx, url: str, *comment_count: int):
     if comment_count:
         comment_count = comment_count[0]
         if comment_count > Config.r_max_comment_count:
@@ -109,7 +114,6 @@ async def rt(ctx, subreddit: str, *post_count: int):
 
 # REQUEST TYPES: 'default', 'url'
 async def reddit_handler(ctx, **kwargs):
-
     subreddit = kwargs.get('subreddit', None)
     url = kwargs.get('url', None)
     post_count = int(kwargs.get('post_count', 1))
@@ -133,7 +137,8 @@ async def reddit_handler(ctx, **kwargs):
     # send a message to show the requester whats happening
 
     loading_message = RedditLoadingEmbed()
-    loading_message.create_embed(subreddit=('unknown' if subreddit is None else subreddit), post_count=post_count, comment_count=comment_num)
+    loading_message.create_embed(subreddit=('unknown' if subreddit is None else subreddit), post_count=post_count,
+                                 comment_count=comment_num)
     bot_message = await bot.send_message(ctx.message.channel, embed=loading_message.get_embed())
     # check if discord channel is marked as NSFW
 
@@ -218,16 +223,17 @@ async def reddit_handler(ctx, **kwargs):
 
             else:
 
-                processing_embed = GfycatLoadingEmbed()
+                processing_embed = GfycatLoadingEmbed(post.get('post_permalink'))
                 await bot.edit_message(bot_message, embed=processing_embed.get_embed())
 
                 image_url = await gfycat_url_handler(post.get('post_url'))
-
+                print(image_url)
                 if image_url is GfycatErrorEmbed:
-                        # time to send error to channel
-                        await bot.edit_message(bot_message, embed=error_embed.get_embed())
-                        image_url = None
-                        return
+                    # time to send error to channel
+
+                    await bot.edit_message(bot_message, embed=error_embed.get_embed())
+                    image_url = None
+                    return
 
         elif post_type == "gif" or post_type == "image":  # either gif or image
 
@@ -239,15 +245,19 @@ async def reddit_handler(ctx, **kwargs):
             # tldrify if user wants
             # TODO: add this function
             # we are going to TLDRify the link (but only if there is not text to start with)
-            if post_text ==  "":
+            if post_text == "":
                 post_text = "**TL;DR:** " + await sumy_url(post.get('post_url'))
-
 
     # create reddit embed
     comment_embed = None
     if len(comments) > 0:
         comment_embed = RedditCommentEmbed()
-        comment_embed.create_embed(comments=comments)
+        comment_embed.create_embed(comments=comments,
+                                   title=str(post.get('post_title')),
+                                   url=str(post.get('post_permalink')),
+                                   post_type=str(post.get('post_type')),
+                                   preview=str(post.get('post_preview'))
+                                   )
     post_embed = RedditPostEmbed()
     post_embed.create_embed(title=str(post.get('post_title')),
                             url=str(post.get('post_permalink')),
@@ -256,29 +266,35 @@ async def reddit_handler(ctx, **kwargs):
                             score=int(post.get('post_score')),
                             description=str(post_text),
                             image=str(image_url),
-                            time=str(post.get('created_utc')) + " UTC",
-                            subreddit=str(post.get('post_subreddit'))
+                            time=str(post.get('created_utc')) + " GMT",
+                            subreddit=str(post.get('post_subreddit')),
+                            gilded=int(post.get('gilded'))
+
                             )
-
-
 
     await bot.edit_message(bot_message, embed=post_embed.get_embed())
 
     if comment_embed is not None:
-        await bot.send_message(ctx.message.channel, embed=comment_embed.get_embed())
+        comment_message = await bot.send_message(ctx.message.channel, embed=comment_embed.get_embed())
 
     # now we will save the post id
 
     if str(ctx.message.server.id) in Config.r_last_post_url:
-        Config.r_last_post_url[str(ctx.message.server.id)][str(ctx.message.channel.id)] = post_id
+        Config.r_last_post_url[str(ctx.message.server.id)][str(ctx.message.channel.id)] = {'id': post_id, 'title': str(
+            post.get('post_title')), 'url': str(post.get('post_permalink')), 'type': str(post.get('post_type')),
+                                                                                           'preview': str(post.get(
+                                                                                               'post_preview'))}
     else:
-        Config.r_last_post_url[str(ctx.message.server.id)] = {str(ctx.message.channel.id): post_id}
-
+        Config.r_last_post_url[str(ctx.message.server.id)] = {
+            str(ctx.message.channel.id): {'id': post_id, 'title': str(post.get('post_title')),
+                                          'url': str(post.get('post_permalink')), 'type': str(post.get('post_type')),
+                                          'preview': str(post.get('post_preview'))}}
 
 
 @bot.command(pass_context=True, description="Allow NSFW on current channel")
 async def addnsfw(ctx):
-    new_channels, message = config.UpdateConfig('config.ini').add_nsfw_channels(str(ctx.message.server.id), str(ctx.message.channel.id))
+    new_channels, message = config.UpdateConfig('config.ini').add_nsfw_channels(str(ctx.message.server.id),
+                                                                                str(ctx.message.channel.id))
     Config.nsfw_channels = new_channels
 
     if message is None:
@@ -291,7 +307,8 @@ async def addnsfw(ctx):
 
 @bot.command(pass_context=True, description="Allow NSFW on current channel")
 async def removensfw(ctx):
-    new_channels, message = config.UpdateConfig('config.ini').remove_nsfw_channels(str(ctx.message.server.id), str(ctx.message.channel.id))
+    new_channels, message = config.UpdateConfig('config.ini').remove_nsfw_channels(str(ctx.message.server.id),
+                                                                                   str(ctx.message.channel.id))
     Config.nsfw_channels = new_channels
 
     if message is None:
@@ -302,40 +319,26 @@ async def removensfw(ctx):
     await bot.send_message(ctx.message.channel, embed=embed)
 
 
-
 @bot.event
-# when ready display this shit
 async def on_ready():
     logging.info('Logged into discord as:')
     logging.info(bot.user.name)
     logging.info(bot.user.id)
-    print(vars(reddit2))
-    print(dir(reddit2))
-
-    logging.info("Logged into reddit as:")
-    #logging.info(reddit2.user.me())
-
-    logging.info('------')
     await bot.change_presence(game=discord.Game(name=Config.bot_game))
 
 
 # main method run when starting
 def start():
     # connect to discord
-    print(Config.discord_token)
     bot.run(Config.discord_token)
 
 
 # connect to reddit (instance)
-
-# connect to reddit (instance)
 def connect_reddit():
-
-
     reddit = praw.Reddit(client_id=Config.r_client_id,
                          client_secret=Config.r_client_secret,
                          user_agent=Config.r_user_agent,
-                        )
+                         )
 
     return reddit
 
@@ -350,7 +353,3 @@ if __name__ == '__main__':
     reddit2 = connect_reddit()
 
     start()
-
-
-
-

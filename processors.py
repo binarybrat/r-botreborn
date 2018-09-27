@@ -59,6 +59,10 @@ async def gfycat_url_handler(url: str):
         error_embed.create_embed(title="Unknown Exception in Gfycat.py",
                                  description=str(e))
 
+    except Exception as e:
+        error_embed = GfycatErrorEmbed()
+        error_embed.create_embed(title="Unknown Exception in Gfycat.py",
+                                 description=str(e))
     finally:
         if error_embed is not None:
             return error_embed

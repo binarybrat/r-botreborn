@@ -44,3 +44,7 @@ class InvalidRedditURL(Exception):
 
 class RedditOAuthException(Exception):
     pass
+
+
+class EmbedNotExistError(Exception):
+    pass
