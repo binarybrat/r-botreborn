@@ -1,5 +1,5 @@
 # R-BotReborn
-## A simple python discord bot that displays Reddit posts in discord
+## A simple python discord bot that displays Reddit contents in discord
 
 ### Usage
 
@@ -36,12 +36,4 @@ sumy requires you to download some stuff
 * Under reddit.cred need to add your reddit api stuff. This is used by PRAW.
 * Under Gfycat need to add Gfycat API Credentials. 
 
-### Current Issues & TODO:
-
-**Probably Lots**
-* Imgur links currently not supported yet (need to maybe a. use imgur api to grab image url or b. some time of parser)
-* Show reddit gold
-* Adapative sentence num for summarising articles
-* rss feed
-* permissions
 #### Note: this was just a little project I worked on while learning Python, so the code quality could be very poor and is very messy. It "works"
