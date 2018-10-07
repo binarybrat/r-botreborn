@@ -2,3 +2,9 @@
 *.pyc
 config.ini
 /.vs
+venv
+.idea
+__pycache__
+.DS_Store
+.vscode/settings.json
+.vscode

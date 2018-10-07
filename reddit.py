@@ -3,10 +3,13 @@ import random
 import time
 from praw.exceptions import ClientException
 from prawcore.exceptions import NotFound
+#import logging
 import config
 from exceptions import *
 from urltype import UrlType
-
+from pprint import pprint
+from praw.models import MoreComments
+import warnings
 Config = config.Config('config.ini')
 
 
@@ -20,19 +23,10 @@ class Reddit:
         post_count = int(kwargs.get('post_count', Config.r_postcount))
         image = kwargs.get('get_image', None)
         nsfw = bool(kwargs.get('nsfw', False))
-        comment_count = int(kwargs.get('comment_count', 0))
         request_type = kwargs.get('request_type', 'default')
         url = kwargs.get('url', None)
         loop = asyncio.get_event_loop()
 
-        # check if we are authenticated with reddit correctly
-        # try:
-        #    self._praw_object.user.me()
-        # except OAuthException as e:
-        #    raise RedditOAuthException(str(e))
-        # except AttributeError:
-        #    raise RedditOAuthException
-        # checking if the request is a url (for when we want to get a post from a url.# TODO: maybe post id?
         if request_type == 'url':  # subreddit is set to the url in this case
 
             print("Request Type is URL")
@@ -40,17 +34,11 @@ class Reddit:
             def get_from_url():
                 return self.__get_post_from_url(url)
 
-            def get_the_comments():
-                return self.get_comments(post_data.get('post_id'), comment_count)
+            
             future10 = loop.run_in_executor(None, get_from_url)
             post_data = await future10
 
-            if comment_count > 0:
-                future11 = loop.run_in_executor(None, get_the_comments)
-                comment_data = await future11
-            else:
-                comment_data = []
-            return post_data, comment_data
+            return post_data
 
         # if not a url continue with normal post-grabbing
         if post_count > Config.r_maxpostcount:
@@ -87,7 +75,7 @@ class Reddit:
         # grabbing the posts
 
         def get_the_posts():
-            return self.__get_posts(subreddit, post_count, image, nsfw, comment_count)
+            return self.__get_posts(subreddit, post_count, image, nsfw)
 
         future3 = loop.run_in_executor(None, get_the_posts)
         posts = await future3
@@ -100,20 +88,10 @@ class Reddit:
         # now we need to randomly grab a post
 
         random_post_num = random.randint(0, posts_length - 1)
-        # grabbing the comments if requested
-
-        if comment_count > 0:
-            def get_the_comments():
-                return self.get_comments(posts[random_post_num].get('post_id'), comment_count)
-
-            future4 = loop.run_in_executor(None, get_the_comments)
-            comments = await future4
-        else:
-            comments = []
 
         # and finally return everything
 
-        return posts[random_post_num], comments
+        return posts[random_post_num]
 
     def check_if_sub_exists(self, subreddit):
         try:
@@ -136,7 +114,7 @@ class Reddit:
             # subreddit cannot be checked for 18+
             return False
 
-    def __get_posts(self, subreddit, post_count, image, nsfw, comment_count):
+    def __get_posts(self, subreddit, post_count, image, nsfw):
 
         posts = []
 
@@ -200,7 +178,7 @@ class Reddit:
             raise InvalidRedditURL("Invalid Reddit Submission URL. Details (NotFound Exception): " + str(e))
         # get post data
 
-        print(self.__get_post_data(submission, post_type, url, str(submission.subreddit)))
+        #print(self.__get_post_data(submission, post_type, url, str(submission.subreddit)))
 
         return self.__get_post_data(submission, post_type, submission.url, str(submission.subreddit))
 
@@ -237,40 +215,61 @@ class Reddit:
 
                 }
 
-    def get_comments(self, post_id, comment_num):
+   
+    def get_comments_by_list(self, submission_id, **kwargs):
 
-        submission = self._praw_object.submission(id=str(post_id))
+        submission = self._praw_object.submission(submission_id)
+        return self.process_comments(submission.comments.list()[0:int(kwargs.get('max_comments', len(submission.comments.list())))])
 
-        # loop through comments
-        comments = []
-        total_length = 0
-        for x in range(0, comment_num):
+
+    
+    # Where MoreComments is a MoreComments object
+    # gets the comments the MoreComments object represents
+    def get_more_comments(self, morecomments):
+       
+       
+        # # See PRAW docs for more info
+        # # https://praw.readthedocs.io/en/latest/code_overview/other/commentforest.html#praw.models.comment_forest.CommentForest.replace_more
+       
+        if isinstance(morecomments, MoreComments):
+            comments = morecomments.comments(update=True)
+            return self.process_comments(comments)
+
+    # Process the comments by editing them (e.g date formatting etc)
+    @staticmethod
+    def process_comments(comments):
+
+        new_comments = []
+        
+        for comment in comments:
+
+            # skip if it is a MoreComments Instance
+            if isinstance(comment, MoreComments):
+                new_comments.append(comment)
+                continue
 
             try:
                 skip_comment = False
-                if submission.comments[x].author not in Config.r_ignore_users:
 
-                    if Config.r_skip_stickied_posts and bool(submission.comments[x].stickied):
+                # skip comments with blacklisted u/
+                if comment.author not in Config.r_ignore_users:
+
+                    # if set to skip sticked_posts/comments
+                    if Config.r_skip_stickied_comments and bool(comment.stickied):
+                        print("Skipping comment as it is stickied")
                         skip_comment = True
 
-                    total_length = total_length + len(str(submission.comments[x].body))
+                    if comment.depth > 0:
+                        skip_comment = True
 
-                    # check if the total length of all comments combined doesnt exceed a limit
-                    # (discord has a limit, staying well below that) limiting to 1200
+                    if not skip_comment:
+                        # convert the time to human readable
+                        comment.created_utc = time.strftime('%Y-%m-%d %H:%M', time.gmtime(
+                            int(comment.created_utc)))
 
-                    if total_length < 1200:
-                        if not skip_comment:
-
-                            # convert the time to human readable
-                            submission.comments[x].created_utc = time.strftime('%Y-%m-%d %H:%M', time.gmtime(
-                                int(submission.comments[x].created_utc)))
-
-                            # change the link of the comment to full url
-                            submission.comments[x].permalink = "https://reddit.com" + str(submission.comments[x].permalink)
-                            comments.append(submission.comments[x])
-
-                    else:
-                        total_length = total_length - len(str(submission.comments[x].body))
+                        # change the link of the comment to full url
+                        comment.permalink = "https://reddit.com" + str(comment.permalink)
+                        new_comments.append(comment)
 
             except IndexError:
                 pass
@@ -278,4 +277,6 @@ class Reddit:
                 raise UnknownException(str(e) + " COMMENTS")
                 # TODO: if an exception for this, fix it
 
-        return comments
+       
+        return new_comments
+

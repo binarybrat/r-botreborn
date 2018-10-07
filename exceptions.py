@@ -48,3 +48,7 @@ class RedditOAuthException(Exception):
 
 class EmbedNotExistError(Exception):
     pass
+
+
+class NoCommentsException(Exception):
+    pass

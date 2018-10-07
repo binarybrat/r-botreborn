@@ -3,7 +3,7 @@ import logging
 import requests
 from exceptions import *
 
-logging = logging.basicConfig(level=logging.DEBUG)
+#logging = logging.basicConfig(level=logging.DEBUG)
 
 # TODO: possibly rewrite or tidy up, this looks like kind of a mess
 
@@ -100,7 +100,7 @@ class Gfycat:
                 except KeyError:
                     gif_info = await self.get_gfy_info(gfy_name)
                     return {'5mb_gif_url': gif_info['gfyItem']['max5mbGif'], 'name': gif_info['gfyItem']['gfyName'], 'color': gif_info['gfyItem']['avgColor']}
-            elif status['task'] == 'error':
+            elif status['task'] == 'error': #TODO: check if this is actually a url
                 raise GfycatProcessError(status)
 
 

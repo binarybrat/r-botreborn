@@ -26,10 +26,10 @@ class UrlType:
         elif "v.redd.it" in self.url:
             return "video"
 
-        elif self.url.endswith(".gif"):
+        elif self.url.endswith(".gif") or self.url.__contains__(".gif"):
             return "gif"
 
-        elif "youtube" in self.url or "youtu.be" in self.url:
+        elif "youtube" in self.url or "youtu.be" in self.url: # TODO: rewrite using the domain given by reddit
             return "youtube"
 
         elif "gfycat" in self.url:
@@ -47,7 +47,7 @@ class UrlType:
 
     def check_video_types(self): # this should finish very fast so / shrug
         for video_format in self.possible_video_types:
-            if self.url.endswith(video_format):
+            if self.url.endswith(video_format) or self.url.__contains__(video_format):
                 return True # is a video format
         return False # not present
 

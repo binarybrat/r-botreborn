@@ -12,7 +12,7 @@ from exceptions import *
 from gfycat import Gfycat
 from rbotreborn import Config
 import asyncio
-import logging
+#import logging
 
 # SUMY imports
 from sumy.parsers.html import HtmlParser
@@ -75,21 +75,29 @@ async def sumy_url(url):
 
     logging.debug("Summarizing URL " + str(url))
     loop = asyncio.get_event_loop()
+    try:
+        def do_stuff():
+            summary_final = ""
+            parser = HtmlParser.from_url(url, Tokenizer(Config.sumy_lang))
+            stemmer = Stemmer(Config.sumy_lang)
+            summarizer = Summarizer(stemmer)
+            summarizer.stop_words = get_stop_words(Config.sumy_lang)
+            for sentence in summarizer(parser.document, Config.sumy_num_sentences):
+                summary_final = summary_final + " " + str(sentence)
+            return summary_final
 
-    def do_stuff():
-        summary_final = ""
-        parser = HtmlParser.from_url(url, Tokenizer(Config.sumy_lang))
-        stemmer = Stemmer(Config.sumy_lang)
-        summarizer = Summarizer(stemmer)
-        summarizer.stop_words = get_stop_words(Config.sumy_lang)
-        for sentence in summarizer(parser.document, Config.sumy_num_sentences):
-            summary_final = summary_final + " " + str(sentence)
-        return summary_final
+        future = loop.run_in_executor(None, do_stuff)
+        summary = await future
 
-    future = loop.run_in_executor(None, do_stuff)
-    summary = await future
+        if len(summary) > 1850:
+            summary = summary[:1850] + '... [go to link to read more]'
+    except LookupError:
+        # automatically download the requirements for sumy
+        print("DOWNLOADING SUMY REQUIREMENTS")
+        import nltk
+        nltk.download('punkt')
+        summary = await sumy_url(url)
 
-    if len(summary) > 1850:
-        summary = summary[:1850] + '... [go to link to read more]'
-
+    # except requests.exceptions.HTTPError: # sometimes sumy fails
+    #     summary = "" #TODO: get this working (test it)
     return summary
