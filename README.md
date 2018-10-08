@@ -30,7 +30,7 @@ Note: exact commands may differ between systems
 
 Clone this Repository (or download release from the releases tab)
 ```
-git clone https://github.com/colethedj/rbotreborn.git
+git clone https://github.com/colethedj/r-botreborn.git
 ```
 Install Requirements
 ```
