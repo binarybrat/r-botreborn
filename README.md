@@ -54,7 +54,7 @@ Add the bot token in config.ini
 ```
 [discord.cred]
 # token for discord API
-token = 
+token = TOKEN_HERE
 ```
 
 **Reddit API**
@@ -67,8 +67,8 @@ Copy the id (below the 'personal use script' text) and the secret and paste it i
 
 ```
 [reddit.cred]
-client_id = 
-client_secret = 
+client_id =  CLIENT_ID_HERE
+client_secret = CLIENT_SECRET_HERE
 ```
 
 **Gfycat API**
@@ -83,9 +83,8 @@ Paste the API credientials you recieved in your email in the config.ini file
 
 ```
 [gfycat]
-
-client_id = 
-client_secret = 
+client_id = CLIENT_ID_HERE
+client_secret = CLIEND_SECRET_HERE
 ```
 
 Edit any other values in the config.ini file to suit you.
@@ -119,4 +118,6 @@ Q: Why is it "reborn"
 A: I had another earlier "test" bot for this idea named "R-BOT" (reddit-bot) and I just wanted to rewrite it so named it RbotReborn
 
 
-#### Note: This was my first python (and github) project I've worked on. I've used this as a way to learn the python programming langauge. So excuse any 'bad code' (feel free to make improvements).
+#### Note: This was my first python (and github) project I've worked on. I've used this as a way to learn the python programming langauge. So excuse any 'bad code' (feel free to make improvements). 
+
+#### Also I'm not reponsible for anything going wrong e.g abuse/spam of API due to bad code. If I find anything like that I will fix it, but with  with any open source application, use with caution.
