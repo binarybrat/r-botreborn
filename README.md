@@ -28,7 +28,7 @@ Note: exact commands may differ between systems
 
 #### Instructions
 
-Clone this Repository
+Clone this Repository (or download release from the releases tab)
 ```
 git clone https://github.com/colethedj/rbotreborn.git
 ```
