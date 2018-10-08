@@ -84,7 +84,7 @@ Paste the API credientials you recieved in your email in the config.ini file
 ```
 [gfycat]
 client_id = CLIENT_ID_HERE
-client_secret = CLIEND_SECRET_HERE
+client_secret = CLIENT_SECRET_HERE
 ```
 
 Edit any other values in the config.ini file to suit you.
@@ -94,7 +94,8 @@ Edit any other values in the config.ini file to suit you.
 
 ```
 python3 rbotreborn.py
-
+```
+```
 type <chosen prefix>help in the chat to display available commands
 ```
 
