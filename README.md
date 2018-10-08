@@ -94,6 +94,8 @@ Edit any other values in the config.ini file to suit you.
 
 ```
 python3 rbotreborn.py
+
+type <chosen prefix>help in the chat to display available commands
 ```
 
 **Note: You may have to add a role to the bot in your server to give enough permissions (read, send, delete messages and reactions)**
