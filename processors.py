@@ -73,7 +73,7 @@ async def gfycat_url_handler(url: str):
 # TODO: maybe adaptive sentence to request more sentences if word count is low (like max 300 words)
 async def sumy_url(url):
 
-    logging.debug("Summarizing URL " + str(url))
+    #logging.debug("Summarizing URL " + str(url))
     loop = asyncio.get_event_loop()
     try:
         def do_stuff():
