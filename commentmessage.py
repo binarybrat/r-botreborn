@@ -138,10 +138,9 @@ class CommentMessage:
                                             footer_message= "Last Updated: " + self._last_updated + "| Page " + str(page)
 
                                             )
-            for reaction in self.apply_emojis:
-                
-                self.apply_emojis[reaction] = True
+            for x in range(0, len(self.apply_emojis)):
 
+                self.apply_emojis[x][next(iter(self.apply_emojis[x]))] = True
 
         except NoCommentsException:
             self.current_embed = RedditErrorEmbed()
