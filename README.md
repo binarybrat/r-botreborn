@@ -26,6 +26,8 @@ Note: exact commands may differ between systems
 * Gfycat API access (instructions below)
 * Discord API access (instructions below)
 
+#### Instructions
+
 Clone this Repository
 ```
 git clone https://github.com/colethedj/rbotreborn.git
