@@ -119,7 +119,7 @@ but basically some things I'm aware of:
 
 Q: Why is it "reborn"
 
-A: I had another earlier "test" bot for this idea named "R-BOT" (reddit-bot) and I just wanted to rewrite it so named it RbotReborn
+A: I had another earlier "test" bot for this idea named "R-BOT" (reddit-bot) and I just wanted to rewrite it so named it R-BotReborn
 
 
 #### Note: This was my first python (and github) project I've worked on. I've used this as a way to learn the python programming langauge. So excuse any 'bad code' (feel free to make improvements). 
