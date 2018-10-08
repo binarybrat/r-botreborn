@@ -42,7 +42,7 @@ class CommentMessage:
         self.current_embed = None
         self.COMMENTS_PER_PAGE = Config.page_comment_num
 
-        self.apply_emojis = {'prev': True,'next': True, 'start':True, 'refresh': True, 'delete':True}
+        self.apply_emojis = [{'prev': True}, {'next': True}, {'start':True}, {'refresh': True}, {'delete':True}]
         self.emojis = {'prev':'◀', 'next':'▶', 'start':'↩', 'refresh':'🔄', 'delete':'🚫'}
         self._last_updated = None
         # more comments stuff
@@ -148,10 +148,12 @@ class CommentMessage:
             self.current_embed.create_embed(title="No Comments Recieved",
                                             description="No Comments recieved for post " + str(self.SUBMISSION_TITLE)[:20])
             
-            for reaction in self.apply_emojis: # only apply the delete emoji
-                if reaction.lower() != "delete":
-                    self.apply_emojis[reaction] = False
-            
+
+            # only apply delete emoji
+            for x in range(0, len(self.apply_emojis)):
+                if next(iter(self.apply_emojis[x])) != 'delete':
+                    self.apply_emojis[x][next(iter(self.apply_emojis[x]))] = False
+
         return self.current_embed.get_embed()
 
 
@@ -260,8 +262,6 @@ class CommentMessage:
 
     async def send_message(self, discord_object, embed):
 
-        
-
         if self.message is not None:
             await discord_object.edit_message(self.message, embed=embed)
         else:
@@ -272,12 +272,11 @@ class CommentMessage:
                 await discord_object.edit_message(self.message, embed=embed)
             else:
                 self.message = await discord_object.send_message(self.channel, embed=embed)
-            
-            
-            for reaction in self.apply_emojis:
-                if self.apply_emojis[reaction]:
-                    await discord_object.add_reaction(self.message, str(self.emojis[reaction]))
-         
+
+            for x in range(0, len(self.apply_emojis)):
+                if self.apply_emojis[x][next(iter(self.apply_emojis[x]))]:
+                    await discord_object.add_reaction(self.message, str(self.emojis[next(iter(self.apply_emojis[x]))]))
+
 
     async def delete_message(self, discord_object):
         await discord_object.delete_message(self.message)
