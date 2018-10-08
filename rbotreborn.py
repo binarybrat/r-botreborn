@@ -17,7 +17,7 @@ import collections
 
 Config = config.Config('config.ini')
 bot = commands.Bot(command_prefix=Config.bot_prefix,
-                   description='R-BotReborn v1.3 \n https://github.com/colethedj/rbotreborn')
+                   description='R-BotReborn v0.3.1 \n https://github.com/colethedj/rbotreborn')
 Logger = logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s %(levelname)-8s %(message)s',
