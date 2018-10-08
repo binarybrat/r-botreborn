@@ -90,7 +90,7 @@ client_secret = CLIEND_SECRET_HERE
 Edit any other values in the config.ini file to suit you.
 
 
-**Launch**
+**Launch!**
 
 ```
 python3 rbotreborn.py
