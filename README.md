@@ -119,5 +119,3 @@ A: I had another earlier "test" bot for this idea named "R-BOT" (reddit-bot) and
 
 
 #### Note: This was my first python (and github) project I've worked on. I've used this as a way to learn the python programming langauge. So excuse any 'bad code' (feel free to make improvements). 
-
-#### Also I'm not reponsible for anything going wrong e.g abuse/spam of API due to bad code. If I find any issue like that in the code I'll fix it (code), but with any open source application, use with caution.
