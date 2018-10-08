@@ -102,11 +102,11 @@ python3 rbotreborn.py
 
 ## License
 
-This project is licensed under the MIT License - see the (LICENSE)[https://github.com/colethedj/rbotreborn/blob/master/LICENSE][ file for details
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/colethedj/rbotreborn/blob/master/LICENSE) file for details
 
 ## Current Issues
 
-See the (Issues tab)[https://github.com/colethedj/rbotreborn/issues] for latest known issues and fixes.
+See the [Issues tab](https://github.com/colethedj/rbotreborn/issues) for latest known issues and fixes.
 
 but basically some things I'm aware of:
 
