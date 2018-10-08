@@ -8,7 +8,7 @@ A simple discord bot that displays reddit content in discord.
 
 * Allows/Disallow NSFW content in certain channels
 
-**NOTE: Currently there are no permissions with this bot (like allowing/disallowing discord users to use certain functions). This will be added in the future.**
+**NOTE: Currently there are no permissions with this bot (like allowing/disallowing discord users to use certain functions).**
 #### Screenshot Example
 
 ![Post + Comments](screenshots/example.png "Post + Comments Example")
