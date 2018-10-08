@@ -2,11 +2,11 @@
 A simple discord bot that displays reddit content in discord.
 
 ## Features Outline
-* Grab selected amount of hot posts from a selected subreddit
+* Grab hot posts from any subreddit
 * Get comments for the posts
 * Display those posts and comments in nicely formatted interactive discord embeds!
 
-* Allows/Disallow NSFW content in certain channels
+* Configurable NSFW channel permissions
 
 **NOTE: Currently there are no permissions with this bot (like allowing/disallowing discord users to use certain functions).**
 #### Screenshot Example
@@ -49,7 +49,7 @@ gedit config.ini
 Follow [these instructions](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token) to get a discord bot account and add it to your server. 
 
 
-Add the bot token in config.ini
+Add the bot token in config.ini (TOKEN NOT ID)
 
 ```
 [discord.cred]
