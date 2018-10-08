@@ -85,7 +85,7 @@ class ConfigDefaults:
     
     box_prefix = "-"
     game = "type -help"
-    r_user_agent = "rbotreborn v1.3 (discord bot)"
+    r_user_agent = "rbotreborn v0.3.1 (discord bot)"
     r_post_count = 100
     r_maxpostcount = 500
     r_skip_mod_posts = "True"
