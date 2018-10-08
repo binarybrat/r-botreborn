@@ -118,6 +118,7 @@ but basically some things I'm aware of:
 ## Other info and Q&A
 
 Q: Why is it "reborn"
+
 A: I had another earlier "test" bot for this idea named "R-BOT" (reddit-bot) and I just wanted to rewrite it so named it RbotReborn
 
 
