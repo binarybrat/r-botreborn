@@ -14,15 +14,15 @@ from commentmessage import *
 import collections
 
 
-
 Config = config.Config('config.ini')
 bot = commands.Bot(command_prefix=Config.bot_prefix,
-                   description='R-BotReborn v0.3.1 \n https://github.com/colethedj/r-botreborn')
+                   description='R-BotReborn v0.3.2 \n https://github.com/colethedj/r-botreborn')
 Logger = logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
+
 
 @bot.command(pass_context=True, description="Get comments from the last post")
 async def rcl(ctx):
@@ -34,7 +34,6 @@ async def rcl(ctx):
                                     custom_message="Getting comments... This will take a moment")
         bot_message = await bot.send_message(ctx.message.channel, embed=loading_message.get_embed())
 
-        
         cmessage = await create_commentmessage(reddit2, Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['id'],
                                                     Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['title'],
                                                     Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['preview'], 
@@ -142,10 +141,7 @@ async def reddit_handler(ctx, **kwargs):
     bot_message = await bot.send_message(ctx.message.channel, embed=loading_message.get_embed())
     # check if discord channel is marked as NSFW
 
-    if str(ctx.message.channel.id) in Config.nsfw_channels[ctx.message.server.id]:
-        nsfw = True
-    else:
-        nsfw = False
+    nsfw = await check_nsfw(ctx)
 
     # start off with getting posts
     red = Reddit(reddit2)
@@ -215,6 +211,10 @@ async def reddit_handler(ctx, **kwargs):
                 gfyjson = await post_gfycat.get_gfy_info(str(post.get('post_url'))[19:(len(str(post.get('post_url'))))])
                 print(gfyjson)  # TODO: fails if starts with http://
                 image_url = gfyjson['gfyItem']['max5mbGif']
+
+                if isinstance(image_url, GfycatErrorEmbed):
+                    await bot.send_message(ctx.message.channel, embed=image_url.get_embed())
+                    image_url = "NONE"
                 # TODO: maybe some error handling here?
             elif post_type == "imgur":
 
@@ -227,12 +227,10 @@ async def reddit_handler(ctx, **kwargs):
 
                 image_url = await gfycat_url_handler(post.get('post_url'))
                 print(image_url)
-                if image_url is GfycatErrorEmbed:
-                    # time to send error to channel
 
-                    await bot.edit_message(bot_message, embed=error_embed.get_embed())
-                    image_url = None
-                    return
+                if isinstance(image_url, GfycatErrorEmbed):
+                    await bot.send_message(ctx.message.channel, embed=image_url.get_embed())
+                    image_url = "NONE"
 
         elif post_type == "gif" or post_type == "image":  # either gif or image
 
@@ -247,7 +245,6 @@ async def reddit_handler(ctx, **kwargs):
             if post_text == "":
                 post_text = "**tl;dr:** " + await sumy_url(post.get('post_url'))
 
-   
     post_embed = RedditPostEmbed()
     post_embed.create_embed(title=str(post.get('post_title')),
                             url=str(post.get('post_permalink')),
@@ -286,6 +283,7 @@ async def nsfw(ctx):
     if ctx.invoked_subcommand is None:
         await bot.send_message(ctx.message.channel, 'usage: {}nsfw <add>/<remove>'.format(Config.bot_prefix))
 
+
 @nsfw.command(pass_context=True, description="Add the current channel as a NSFW channel")
 async def add(ctx):
     new_channels, message = config.UpdateConfig('config.ini').add_nsfw_channels(str(ctx.message.server.id),
@@ -314,8 +312,20 @@ async def remove(ctx):
     await bot.say(embed=embed)
 
 
+async def check_nsfw(ctx):
+
+    try:
+        if str(ctx.message.channel.id) in Config.nsfw_channels[ctx.message.server.id]:
+            return True
+        else:
+            return False
+    except KeyError:
+        return False # server doesn't exist
+
+
 @bot.event
 async def on_ready():
+
     logging.info('Logged into discord as:')
     logging.info(bot.user.name)
     logging.info(bot.user.id)
@@ -336,7 +346,6 @@ def connect_reddit():
                          )
 
     return reddit
-
 
 
 @bot.event

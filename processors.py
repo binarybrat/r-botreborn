@@ -28,7 +28,12 @@ async def gfycat_url_handler(url: str):
         post_gfycat = Gfycat(Config.gfycat_client_id, Config.gfycat_client_secret)
         gfyjson = await post_gfycat.get_url_from_link(url)
         print(gfyjson)
-        return gfyjson['5mb_gif_url']
+
+        if "http" in gfyjson['5mb_gif_url']:
+            return gfyjson['5mb_gif_url']
+        else:
+            print("not a URL")
+            raise GfycatProcessError("Bad URL (this could be caused by the URL Bug that will be fixed soon") # Temporary till we fix the URLType bug
 
     except KeyError as e:
         error_embed = GfycatErrorEmbed()

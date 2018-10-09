@@ -9,10 +9,12 @@ from exceptions import *
 from time import gmtime, strftime
 # message timestamp
 
+
 async def create_commentmessage(reddit, submission_id:str, submission_title:str, submission_preview:str, submission_url:str, submission_type:str, channel):
     comment_message = CommentMessage(reddit, submission_id, submission_title, submission_preview, submission_url, submission_type, channel)
     await comment_message._init()
     return comment_message
+
 
 class CommentMessage:
 
@@ -54,6 +56,7 @@ class CommentMessage:
         await self.get_initial_comments()
         await self.create_pages()
     # create new pages based on comments
+
     async def create_pages(self, **kwargs):
 
         # Thanks to https://stackoverflow.com/questions/1624883/alternative-way-to-split-a-list-into-groups-of-n#1625023
@@ -135,7 +138,7 @@ class CommentMessage:
                                             url=self.SUBMISSION_URL,
                                             post_type=self.SUBMISSION_TYPE,
                                             preview=self.SUBMISSION_PREVIEW,
-                                            footer_message= "Last Updated: " + self._last_updated + "| Page " + str(page)
+                                            footer_message= "Last Updated: " + self._last_updated + " | Page " + str(page)
 
                                             )
             for x in range(0, len(self.apply_emojis)):
@@ -154,7 +157,6 @@ class CommentMessage:
                     self.apply_emojis[x][next(iter(self.apply_emojis[x]))] = False
 
         return self.current_embed.get_embed()
-
 
     async def check_current_page_comments(self):
 
@@ -188,10 +190,16 @@ class CommentMessage:
         # if a comment is a more comments, request new comments, update pages, call the method again
 
     async def get_more_comments(self, mc_object:MoreComments):
-        #TODO: Error Handling
+        # TODO: Error Handling
         try:
-            red = Reddit(self.reddit)
-            self.__comments = red.get_more_comments(mc_object)
+            loop = asyncio.get_event_loop()
+
+            def get_from_reddit():
+                red = Reddit(self.reddit)
+                return red.get_more_comments(mc_object)
+            
+            future = loop.run_in_executor(None, get_from_reddit)
+            self.__comments = await future
 
         except UnknownException as e:
             print("Unknown Exception! " + str(e))
@@ -199,11 +207,15 @@ class CommentMessage:
 
     async def get_initial_comments(self):
 
-        #TODO: Error Handling
+        # TODO: Error Handling
+        loop = asyncio.get_event_loop()
 
-        red = Reddit(self.reddit)
-        self.__initial_comments = red.get_comments_by_list(self.SUBMISSION_ID)
+        def get_from_reddit():
+            red = Reddit(self.reddit)
+            return red.get_comments_by_list(self.SUBMISSION_ID)
 
+        future = loop.run_in_executor(None, get_from_reddit)
+        self.__initial_comments = await future
         self.__comments = copy.deepcopy(self.__initial_comments)
         self.flattened_post = copy.deepcopy(self.__comments)
         await self._update_last_updated()
@@ -238,6 +250,7 @@ class CommentMessage:
             self.current_page = page
         embed = await self.return_embed(self.current_page)
         await self.send_message(discord_object, embed)
+
     async def refresh(self, discord_object):
         embed = self.current_embed
         await self.send_message(discord_object, embed.edit_footer("Refreshing with latest comments... please wait a moment"))
@@ -252,7 +265,6 @@ class CommentMessage:
 
         # more comments stuff
         self.used_morecomments = []
-        self.unused_morecomments = []
 
         self.flattened_post = []
         await self.get_initial_comments()
@@ -275,7 +287,6 @@ class CommentMessage:
             for x in range(0, len(self.apply_emojis)):
                 if self.apply_emojis[x][next(iter(self.apply_emojis[x]))]:
                     await discord_object.add_reaction(self.message, str(self.emojis[next(iter(self.apply_emojis[x]))]))
-
 
     async def delete_message(self, discord_object):
         await discord_object.delete_message(self.message)

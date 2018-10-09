@@ -249,27 +249,24 @@ class Reddit:
                 continue
 
             try:
-                skip_comment = False
+                #skip_comment = False
+                
+                if comment.author in Config.r_ignore_users:
+                    continue # skip
+                
+                if comment.depth > 0: # only want top level comments at this stage
+                    continue
 
-                # skip comments with blacklisted u/
-                if comment.author not in Config.r_ignore_users:
+                if Config.r_skip_stickied_comments and str(comment.stickied).lower() == "true":
+                    print("Skipping comment as it is stickied")
+                    continue
 
-                    # if set to skip sticked_posts/comments
-                    if Config.r_skip_stickied_comments and bool(comment.stickied):
-                        print("Skipping comment as it is stickied")
-                        skip_comment = True
-
-                    if comment.depth > 0:
-                        skip_comment = True
-
-                    if not skip_comment:
-                        # convert the time to human readable
-                        comment.created_utc = time.strftime('%Y-%m-%d %H:%M', time.gmtime(
+                # convert the time to human readable
+                comment.created_utc = time.strftime('%Y-%m-%d %H:%M', time.gmtime(
                             int(comment.created_utc)))
 
-                        # change the link of the comment to full url
-                        comment.permalink = "https://reddit.com" + str(comment.permalink)
-                        new_comments.append(comment)
+                comment.permalink = "https://reddit.com" + str(comment.permalink)
+                new_comments.append(comment)              
 
             except IndexError:
                 pass

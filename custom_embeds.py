@@ -482,9 +482,9 @@ class GfycatErrorEmbed(GfycatEmbed):
     def create_embed(self, **kwargs):
         title = kwargs.get('title', discord.Embed.Empty)
         description = kwargs.get('description', discord.Embed.Empty)
-        extra_info = kwargs.get('extra', " ")
+        extra_info = kwargs.get('extra', "")
 
-        if extra_info:
+        if extra_info is not "":
             extra_info = " | " + str(extra_info)
 
         self._embed = discord.Embed(title=title, description=description, colour=self._colour)
