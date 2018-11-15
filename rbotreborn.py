@@ -9,11 +9,9 @@ from custom_embeds import *
 from reddit import *
 from exceptions import *
 from processors import *
-import itertools
 from commentmessage import *
-import collections
-
-
+from psutil import cpu_percent, virtual_memory
+import datetime
 Config = config.Config('config.ini')
 bot = commands.Bot(command_prefix=Config.bot_prefix,
                    description='R-BotReborn v0.3.2 \n https://github.com/colethedj/r-botreborn')
@@ -24,28 +22,48 @@ Logger = logging.basicConfig(
     )
 
 
+@bot.command(description="Displays system Status of the bot")
+async def about():
+    """
+    Display system status of the bot
+    """
+    about_embed = discord.Embed(title="About", description=f"R-BotReborn v{Config.version} by colethedj#6071"                          
+                                f"\n[Github](https://github.com/colethedj/r-botreborn)",
+                                colour=0x3498db)
+    about_embed.set_thumbnail(url='https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png')
+    about_embed.add_field(name="CPU Usage", value=f"{cpu_percent(interval=None)}%")
+    about_embed.add_field(name="Memory Usage", value=f"{virtual_memory().percent}%"
+                          f"({'%.2f' % (((virtual_memory().percent/100) * virtual_memory().total)/1073741824)}GB/"
+                          f"{'%.2f' % (virtual_memory().total/1073741824)}GB)")
+    about_embed.add_field(name="Alive since", value=str(bot.uptime), inline=True)
+    about_embed.add_field(name="Servers connected to", value=str(len(bot.servers)))
+
+    await bot.say(embed=about_embed)
+
 @bot.command(pass_context=True, description="Get comments from the last post")
 async def rcl(ctx):
-
+    """
+    rcl = Reddit Comment Last
+    Displays comments for the last post in requested channel
+    """
     await bot.delete_message(ctx.message)
     if ctx.message.channel.id in Config.r_last_post_url[ctx.message.server.id]:
         loading_message = RedditLoadingEmbed()
         loading_message.create_embed(footer_text="Getting comments for the previous post",
-                                    custom_message="Getting comments... This will take a moment")
+                                     custom_message="Getting comments... This will take a moment")
         bot_message = await bot.send_message(ctx.message.channel, embed=loading_message.get_embed())
 
-        cmessage = await create_commentmessage(reddit2, Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['id'],
+        comment_message = await create_commentmessage(reddit2, Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['id'],
                                                     Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['title'],
                                                     Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['preview'], 
                                                     Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['url'], 
                                                     Config.r_last_post_url[ctx.message.server.id][ctx.message.channel.id]['type'], 
                                                     ctx.message.channel)
     
-        cmessage.manual_message = bot_message
-        await cmessage.goto_page(bot, 0)
+        comment_message.manual_message = bot_message
+        await comment_message.goto_page(bot, 0)
     
-        Config.comment_messages[ctx.message.server.id][ctx.message.channel.id][cmessage.message.id] = cmessage
-    
+        Config.comment_messages[ctx.message.server.id][ctx.message.channel.id][comment_message.message.id] = comment_message
 
     else:
         embed = RedditErrorEmbed()
@@ -330,6 +348,8 @@ async def on_ready():
     logging.info(bot.user.name)
     logging.info(bot.user.id)
     await bot.change_presence(game=discord.Game(name=Config.bot_game))
+    if not hasattr(bot, 'uptime'):
+        bot.uptime = (datetime.datetime.utcnow()).strftime("%d-%m-%Y %H:%M:%S")
 
 
 # main method run when starting
@@ -353,7 +373,8 @@ async def on_reaction_add(reaction, user):
     print("Reaction Detected: " + str(reaction.emoji) + " from user "+ str(user))
 
     if str(user.id) != str(bot.user.id):
-        if Config.comment_messages[reaction.message.server.id][reaction.message.channel.id][reaction.message.id] is not None:
+
+        if isinstance(Config.comment_messages[reaction.message.server.id][reaction.message.channel.id][reaction.message.id], CommentMessage):
 
             cmsg = Config.comment_messages[reaction.message.server.id][reaction.message.channel.id][reaction.message.id]
         
@@ -382,7 +403,7 @@ async def on_reaction_add(reaction, user):
                 await bot.remove_reaction(reaction.message, "🔄", user)
 
             elif reaction.emoji == "🚫":
-
+                print("deleting message")
                 await bot.delete_message(reaction.message)
                 # delete this message from the dctionary
                 del Config.comment_messages[reaction.message.server.id][reaction.message.channel.id][reaction.message.id]

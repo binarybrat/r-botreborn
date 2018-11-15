@@ -7,9 +7,7 @@ from prawcore.exceptions import NotFound
 import config
 from exceptions import *
 from urltype import UrlType
-from pprint import pprint
 from praw.models import MoreComments
-import warnings
 Config = config.Config('config.ini')
 
 

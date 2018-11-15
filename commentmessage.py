@@ -189,7 +189,7 @@ class CommentMessage:
 
         # if a comment is a more comments, request new comments, update pages, call the method again
 
-    async def get_more_comments(self, mc_object:MoreComments):
+    async def get_more_comments(self, mc_object: MoreComments):
         # TODO: Error Handling
         try:
             loop = asyncio.get_event_loop()

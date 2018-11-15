@@ -23,7 +23,7 @@ class Config:
         self.bot_game = str(config.get('discord.bot', 'game', fallback=ConfigDefaults.game))
         self.nsfw_channels = makehash()  # so we don't get index problems
         self.nsfw_channels = json.loads(config.get('discord.bot', 'nsfwchannels', fallback=None))
-
+        self.version = ConfigDefaults.version
         # reddit.cred
 
         self.r_client_id = config.get('reddit.cred', 'client_id', fallback=None)
@@ -41,10 +41,7 @@ class Config:
         self.r_skip_stickied_posts = config.get('reddit.default', 'skip_stickied_posts', fallback=ConfigDefaults.r_skip_stickied_posts)
         self.r_skip_stickied_comments = config.get('reddit.default', 'skip_stickied_comments', fallback=ConfigDefaults.r_skip_stickied_posts)
 
-        if self.r_skip_stickied_comments.lower() == "false":
-            self.r_skip_stickied_comments = False
-        else:
-            self.r_skip_stickied_comments = True
+        self.r_skip_stickied_comments = False if self.r_skip_stickied_comments.lower() == 'false' else True
 
         if self.r_skip_stickied_posts.lower() == "false":
             self.r_skip_stickied_posts = False
@@ -83,7 +80,7 @@ class Config:
 class ConfigDefaults:
     
     # some defaults
-    
+    version = "0.3.3"
     box_prefix = "-"
     game = "type -help"
     r_user_agent = "rbotreborn v0.3.2 (discord bot)"
