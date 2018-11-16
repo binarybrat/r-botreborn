@@ -12,6 +12,7 @@ from processors import *
 from commentmessage import *
 from psutil import cpu_percent, virtual_memory
 import datetime
+from discord.errors import HTTPException
 
 
 Config = config.Config('config.ini')
@@ -32,8 +33,15 @@ async def gif(ctx, url):
     """
 
     await bot.delete_message(ctx.message)
-    processing_embed = GfycatLoadingEmbed(url)
-    bot_message = await bot.send_message(ctx.message.channel, embed=processing_embed.get_embed())
+    try:
+        processing_embed = GfycatLoadingEmbed(url)
+        bot_message = await bot.send_message(ctx.message.channel, embed=processing_embed.get_embed())
+    except HTTPException:
+        error_embed = GfycatErrorEmbed()
+        error_embed.create_embed(title="Invalid URL Entered",
+                                 description="Make sure the URL entered is a valid URL")
+        await bot.send_message(ctx.message.channel, embed=error_embed.get_embed())
+        return
     try:
         # # TODO: Rewrite this when handling already gfycat links.
         # if "gfycat.com" in url:
@@ -50,6 +58,7 @@ async def gif(ctx, url):
     except KeyError:
         pass
     if isinstance(image_url, GfycatErrorEmbed):
+        print("sending error")
         await bot.edit_message(bot_message, embed=image_url.get_embed())
         return
     gfy_embed = GfycatEmbed()
@@ -66,7 +75,7 @@ async def me(ctx):
     me_embed = discord.Embed(title=ctx.message.author.display_name if str(ctx.message.author.display_name) != ctx.message.author.name else discord.Embed.Empty,
                              colour=ctx.message.author.colour,
                              description=f"ID: {ctx.message.author.id}\n"
-                                         f"Account Created {ctx.message.author.created_at.strftime('%d-%m-%Y at %H:%M:%S')} UTC")
+                                         f"Account created on {ctx.message.author.created_at.strftime('%d-%m-%Y at %H:%M:%S')} UTC")
     me_embed.set_author(name=ctx.message.author.name,
                         icon_url=ctx.message.author.avatar_url if ctx.message.author.avatar_url is not "" else ctx.message.author.default_avatar_url)
 
@@ -212,7 +221,7 @@ async def r(ctx, subreddit: str, *post_count: int):
 
     post_count = post_count[0] if post_count else Config.r_postcount
 
-    await reddit_handler(ctx, subreddit=subreddit, post_count=post_count, image=None)
+    await reddit_handler(ctx, subreddit=subreddit, post_count=post_count, image=None, tldr_enabled=True)
 
 
 @bot.command(pass_context=True, description="Get image-only posts from reddit")
@@ -252,7 +261,7 @@ async def reddit_handler(ctx, **kwargs):
     image = kwargs.get('image', None)
     get_comments = kwargs.get('comments', False)
     request_type = 'default'
-
+    enable_tldr = kwargs.get('tldr_enabled', True)
     if subreddit is not None:
         subreddit = subreddit.lower()
 
@@ -291,8 +300,8 @@ async def reddit_handler(ctx, **kwargs):
 
     except SubredditNotExist:
         error_embed = RedditErrorEmbed()
-        error_embed.create_embed(title="r/" + str(subreddit) + " does not exist.",
-                                 description="Check your spelling")
+        error_embed.create_embed(title="Subreddit does not exist!",
+                                 description="r/" + str(subreddit) + " does not exist.")
     except SubredditIsNSFW:
         error_embed = RedditErrorEmbed()
         error_embed.create_embed(title="r/" + str(subreddit) + " is a NSFW subreddit",
@@ -317,7 +326,14 @@ async def reddit_handler(ctx, **kwargs):
         error_embed.create_embed(title="Reddit Authentication Failure",
                                  description="Make sure you have enter credentials and that they are correct"
                                              "in the config file. Also make sure only application using your "
-                                             "API credentials at once. " + str(e))
+                                             "API credentials at once. ")
+        logging.error("Reddit OAuth Failture. Invalid Credentials? " + str(e))
+
+    except RedditForbiddenAccess:
+        error_embed = RedditErrorEmbed()
+        error_embed.create_embed(title="Forbidden Access to that subreddit",
+                                 description=f"No access to r/{subreddit} (may be a private subreddit)")
+        logging.error(f"No Access to r/{subreddit} ")
     except UnknownException as e:
         error_embed = RedditErrorEmbed()
         error_embed.create_embed(title="Unknown Error",
@@ -367,7 +383,7 @@ async def reddit_handler(ctx, **kwargs):
 
     elif post_type == "link":
         
-        if Config.enable_sumy:
+        if Config.enable_sumy and enable_tldr:
             # tldrify if user wants
             # we are going to TLDRify the link (but only if there is not text to start with)
             if post_text == "":
