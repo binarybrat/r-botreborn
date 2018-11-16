@@ -440,7 +440,7 @@ class GfycatEmbed:
         description = kwargs.get('description', discord.Embed.Empty)
         thumbnail = kwargs.get('thumbnail', None)
         url = kwargs.get('url', discord.Embed.Empty)
-        colour = self._colour
+        colour = kwargs.get('color', self._colour)
         image = kwargs.get('image', None)
 
         self._embed = discord.Embed(title=title,

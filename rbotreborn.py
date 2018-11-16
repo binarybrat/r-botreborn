@@ -25,6 +25,103 @@ Logger = logging.basicConfig(
     )
 
 
+@bot.command(pass_context=True)
+async def gif(ctx, url):
+    """
+    Create a gif from a URL via GfyCat
+    """
+
+    await bot.delete_message(ctx.message)
+    processing_embed = GfycatLoadingEmbed(url)
+    bot_message = await bot.send_message(ctx.message.channel, embed=processing_embed.get_embed())
+    try:
+        # # TODO: Rewrite this when handling already gfycat links.
+        # if "gfycat.com" in url:
+        #     post_gfycat = Gfycat(Config.gfycat_client_id, Config.gfycat_client_secret)
+        #     # TODO: This may not work, test
+        #     gfyjson = await post_gfycat.get_gfy_info(str(url)[19:(len(str(url)))])
+        #     print(gfyjson)  # TODO: fails if starts with http://
+        #     image_url = gfyjson['gfyItem']['max5mbGif']
+        #     color = gfyjson['gfyItem']['color']
+        # else:
+        image_url, color = await gfycat_url_handler(url)
+    except TypeError:
+        pass
+    except KeyError:
+        pass
+    if isinstance(image_url, GfycatErrorEmbed):
+        await bot.edit_message(bot_message, embed=image_url.get_embed())
+        return
+    gfy_embed = GfycatEmbed()
+    gfy_embed.create_embed(title="GIF", image=image_url, color=(int(color[1:], 16)) + 0x200, url=url, description=f"<@{ctx.message.author.id}>")
+    await bot.edit_message(bot_message, embed=gfy_embed.get_embed())
+
+
+@bot.command(pass_context=True, description="Get info about yourself")
+async def me(ctx):
+    """
+    Give user info about user requesting the command
+    """
+
+    me_embed = discord.Embed(title=ctx.message.author.display_name if str(ctx.message.author.display_name) != ctx.message.author.name else discord.Embed.Empty,
+                             colour=ctx.message.author.colour,
+                             description=f"ID: {ctx.message.author.id}\n"
+                                         f"Account Created {ctx.message.author.created_at.strftime('%d-%m-%Y at %H:%M:%S')} UTC")
+    me_embed.set_author(name=ctx.message.author.name,
+                        icon_url=ctx.message.author.avatar_url if ctx.message.author.avatar_url is not "" else ctx.message.author.default_avatar_url)
+
+    me_embed.add_field(name="Joined at", value=f"{ctx.message.author.joined_at.strftime('%d-%m-%Y at %H:%M:%S')} UTC")
+    me_embed.add_field(name="Status", value=str(ctx.message.author.status).title())
+    me_embed.set_thumbnail(url=ctx.message.author.avatar_url if ctx.message.author.avatar_url is not "" else ctx.message.author.default_avatar_url)
+
+    me_embed.add_field(name="Playing", value=ctx.message.author.game if ctx.message.author.game is not None else "Nothing")
+    me_embed.add_field(name="Roles", value=', '.join(list(map(lambda x: x.name, ctx.message.author.roles))), inline=False)
+    await bot.send_message(ctx.message.channel, embed=me_embed)
+
+
+@bot.command(pass_context=True, description="Display current channel info")
+async def channel(ctx):
+    """
+    Display current channel info
+    """
+    channel_embed = discord.Embed(title=f"Channel Info for {ctx.message.channel.name}",
+                                  colour=0x3498db,
+                                  description=f"ID: {ctx.message.channel.id}\n"
+                                              f"Created on "
+                                              f"{ctx.message.channel.created_at.strftime('%d-%m-%Y at %H:%M:%S')} UTC")
+    channel_embed.set_thumbnail(url=ctx.message.server.icon_url)
+    channel_embed.add_field(name="NSFW Enabled", value=str(await check_nsfw(ctx)), inline=True)
+    channel_embed.add_field(name="Type", value=str(ctx.message.channel.type).title(), inline=True)
+    topic = ctx.message.channel.topic if ctx.message.channel.topic is not "" else "None"
+    channel_embed.add_field(name="Topic", value=topic, inline=False)
+
+    await bot.send_message(ctx.message.channel, embed=channel_embed)
+
+
+@bot.command(pass_context=True, description="Display server info")
+async def server(ctx):
+    """
+    Displays current server stats
+    """
+    server_embed = discord.Embed(description=f"ID: {ctx.message.server.id}\n "
+                                             f"Created on "
+                                             f"{ctx.message.server.created_at.strftime('%d-%m-%Y at %H:%M:%S')} UTC",
+                                 colour=0x3498db)
+
+    server_embed.set_author(name=ctx.message.server.name, icon_url=ctx.message.server.icon_url)
+    server_embed.set_thumbnail(url=ctx.message.server.icon_url)
+    server_embed.add_field(name=f"Members ({ctx.message.server.member_count})",
+                           value=f"Online: {len(list(filter(lambda x: x.status is discord.Status.online,ctx.message.server.members)))}\n"
+                                 f"Idle/DND: {len(list(filter(lambda x: x.status is discord.Status.idle or x.status is discord.Status.do_not_disturb,ctx.message.server.members)))}\n"
+                                 f"Offline: {len(list(filter(lambda x: x.status is discord.Status.offline,ctx.message.server.members)))}")
+    server_embed.add_field(name="Server Owner", value=ctx.message.server.owner)
+    server_embed.add_field(name="Region", value=str(ctx.message.server.region).title())
+    server_embed.add_field(name="Channels", value=str(len(list(filter(lambda y: y.type is discord.ChannelType.voice or y.type is discord.ChannelType.text, ctx.message.server.channels)))))
+    server_embed.add_field(name="Roles", value=str(len(ctx.message.server.roles)))
+    server_embed.add_field(name="Verification Level", value=str(ctx.message.server.verification_level).title())
+    await bot.send_message(ctx.message.channel, embed=server_embed)
+
+
 @bot.command(description="Displays system Status of the bot")
 async def about():
     """
@@ -33,14 +130,15 @@ async def about():
     about_embed = discord.Embed(title="About", description=f"R-BotReborn v{Config.version} by colethedj#6071"                          
                                 f"\n[Github](https://github.com/colethedj/r-botreborn)",
                                 colour=0x3498db)
+
     about_embed.set_thumbnail(url='https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png')
-    about_embed.add_field(name="CPU Usage", value=f"{cpu_percent(interval=None)}%")
-    about_embed.add_field(name="Memory Usage", value=f"{virtual_memory().percent}%"
+    about_embed.add_field(name="System CPU Usage", value=f"{cpu_percent(interval=None)}%")
+    about_embed.add_field(name="System Memory Usage", value=f"{virtual_memory().percent} %"
                           f"({'%.2f' % (((virtual_memory().percent/100) * virtual_memory().total)/1073741824)}GB/"
                           f"{'%.2f' % (virtual_memory().total/1073741824)}GB)")
-    about_embed.add_field(name="Alive since", value=str(bot.uptime), inline=True)
+    about_embed.add_field(name="Alive since", value=str(bot.uptime) + " UTC", inline=True)
     about_embed.add_field(name="Servers connected to", value=str(len(bot.servers)))
-
+    about_embed.set_footer(text=f"For current server info use {Config.bot_prefix}server")
     await bot.say(embed=about_embed)
 
 
@@ -256,7 +354,7 @@ async def reddit_handler(ctx, **kwargs):
                 processing_embed = GfycatLoadingEmbed(post.get('post_permalink'))
                 await bot.edit_message(bot_message, embed=processing_embed.get_embed())
 
-                image_url = await gfycat_url_handler(post.get('post_url'))
+                image_url, color = await gfycat_url_handler(post.get('post_url'))
                 print(image_url)
 
                 if isinstance(image_url, GfycatErrorEmbed):

@@ -30,7 +30,7 @@ async def gfycat_url_handler(url: str):
         print(gfyjson)
 
         if "http" in gfyjson['5mb_gif_url']:
-            return gfyjson['5mb_gif_url']
+            return gfyjson['5mb_gif_url'], gfyjson['color']
         else:
             print("not a URL")
             raise GfycatProcessError("Bad URL (this could be caused by the URL Bug that will be fixed soon") # Temporary till we fix the URLType bug
@@ -70,7 +70,7 @@ async def gfycat_url_handler(url: str):
                                  description=str(e))
     finally:
         if error_embed is not None:
-            return error_embed
+            return error_embed, None
 
 
 # Text summarizer using Sumy https://github.com/miso-belica/sumy
