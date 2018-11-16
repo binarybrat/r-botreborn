@@ -75,7 +75,7 @@ async def me(ctx):
     me_embed.set_thumbnail(url=ctx.message.author.avatar_url if ctx.message.author.avatar_url is not "" else ctx.message.author.default_avatar_url)
 
     me_embed.add_field(name="Playing", value=ctx.message.author.game if ctx.message.author.game is not None else "Nothing")
-    me_embed.add_field(name="Roles", value=', '.join(list(map(lambda x: x.name, ctx.message.author.roles))), inline=False)
+    me_embed.add_field(name="Roles", value=', '.join(list(map(lambda y: y.name, list(filter(lambda x: x.name != "@everyone",ctx.message.author.roles))))), inline=False)
     await bot.send_message(ctx.message.channel, embed=me_embed)
 
 
