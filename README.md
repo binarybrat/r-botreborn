@@ -5,7 +5,8 @@ A simple discord bot that displays reddit content in discord.
 * Grab hot posts from any subreddit
 * Get comments for the posts
 * Display those posts and comments in nicely formatted interactive discord embeds!
-
+* Smart resizing of comments to maximize amount of text to fit in the embds
+* Server, channel and user info
 * Configurable NSFW channel permissions
 
 **NOTE: Currently there are no permissions with this bot (like allowing/disallowing discord users to use certain functions).**
@@ -93,6 +94,7 @@ Edit any other values in the config.ini file to suit you.
 **Launch!**
 
 ```
+# make sure you are in the bots directory 
 python3 rbotreborn.py
 ```
 ```
@@ -113,8 +115,7 @@ See the [Issues tab](https://github.com/colethedj/rbotreborn/issues) for latest 
 but basically some things I'm aware of:
 
 * No Permissions to control what functions users can use
-* If a url has "youtube" or other keywords I used in my lazy-defined urltype handler in the url when it isn't, say, a youtube link then it will still pass it on to gfycat and crash (so gfycat load looks like it's going on forever)
-
+* Spamming the navigation reactions on comments may 'crash' the embed (display comments not received error)  
 ## Other info and Q&A
 
 Q: Why is it "reborn"

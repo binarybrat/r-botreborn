@@ -2,14 +2,12 @@ import asyncio
 import random
 import time
 from praw.exceptions import ClientException
-from prawcore.exceptions import NotFound
+from prawcore.exceptions import NotFound, ResponseException, Forbidden
 #import logging
 import config
 from exceptions import *
 from urltype import UrlType
-from pprint import pprint
 from praw.models import MoreComments
-import warnings
 Config = config.Config('config.ini')
 
 
@@ -98,11 +96,17 @@ class Reddit:
             test = self._praw_object.subreddit(subreddit).new(limit=1)
             test.next()
             return True
-        except Exception as e:
+        except NotFound:
+            return False
+        except Forbidden:
+            raise RedditForbiddenAccess
+        except ResponseException as e:
+            raise RedditOAuthException(e)
+        except NotImplementedError as e:
             if str(e) == "Redirect to /subreddits/search":
                 return False
             else:
-                raise UnknownException(str(e))
+               raise UnknownException(str(e))
                 # TODO: handle other errors that may arise
 
     def check_if_over18(self, subreddit):
@@ -215,19 +219,15 @@ class Reddit:
 
                 }
 
-   
     def get_comments_by_list(self, submission_id, **kwargs):
 
         submission = self._praw_object.submission(submission_id)
         return self.process_comments(submission.comments.list()[0:int(kwargs.get('max_comments', len(submission.comments.list())))])
 
-
-    
     # Where MoreComments is a MoreComments object
     # gets the comments the MoreComments object represents
     def get_more_comments(self, morecomments):
-       
-       
+
         # # See PRAW docs for more info
         # # https://praw.readthedocs.io/en/latest/code_overview/other/commentforest.html#praw.models.comment_forest.CommentForest.replace_more
        

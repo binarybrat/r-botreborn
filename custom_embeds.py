@@ -40,7 +40,6 @@ class RedditPostEmbed:
         title = kwargs.get('title', discord.Embed.Empty)
         time = kwargs.get('time', None)
         gilded = int(kwargs.get('gilded', 0))
-        self._update_time = None
         if is_nsfw:
             nsfw_text = " | NSFW"
         else:
@@ -63,8 +62,8 @@ class RedditPostEmbed:
             time = " | " + str(time)
         else:
             time = " "
-        self._embed.set_footer(text="u/" + author + " via r/" + subreddit + " | Score: " + str(
-            post_score) + nsfw_text + time + gilded_text,
+        self._embed.set_footer(text="u/" + author + " in r/" + subreddit + " | Score: " + str(
+            post_score) + time + nsfw_text + gilded_text,
                          icon_url=self._reddit_icon_url)
 
 
@@ -137,7 +136,6 @@ class RedditCommentEmbed(RedditPostEmbed):
 
         checked_title = p1 + post_title + p3_type
         current_length_left = current_length_left - len(checked_title) - len(footer_message)
-        #print(current_length_left)
 
         self._embed = discord.Embed(title=checked_title, url=post_link, colour=self._colour, inline=False)
 
@@ -221,21 +219,21 @@ class RedditCommentEmbed(RedditPostEmbed):
         free_char_spaces = 0
 
         # deciding what comments we are saving
-        for key, value in extracted_comment_info.items(): 
+        for key, value in extracted_comment_info.items():
           #  print("each comment:")
          #   print(str(key) + str(value))# for each comments
-            
+
 
             # for comments that are below the reconmended and are totally safe
             # so this would be comments that are:
 
             # comment_size < recommended:
-            #   add extra space to free_char_spaces - so if recommened was > 1024, we'll grab all the space the comment doesn't take up. 
-            # -- only issue with this is that if comment recon is > 1024 then none of the comments will be ablke to utilize that space. But we 
+            #   add extra space to free_char_spaces - so if recommened was > 1024, we'll grab all the space the comment doesn't take up.
+            # -- only issue with this is that if comment recon is > 1024 then none of the comments will be ablke to utilize that space. But we
             # -- still want accurate sizing
             # but then check if the comment_size is below or equal to recommended_max_size - comment_footer_size
             # if it is equal to: add to the all clear list
-            # if not, do nothing so it will be processed. 
+            # if not, do nothing so it will be processed.
           #  print(str(value.get('body_length')) + "  < " + str(recommended_comment_size))
             if value.get('body_length') < recommended_comment_size:
                 possible_free_sizes = recommended_comment_size - value.get('body_length')
@@ -387,39 +385,38 @@ class RedditCommentEmbed(RedditPostEmbed):
     # returns a list in format [numlower, numlower, numlower, numupper...] etc
     @staticmethod
     def __share_chars_calculation(comments_dict, free_char_spaces):
-        numcomments = len(comments_dict)
+        """
+        Share out a number between comment objects
+        'You have 10 apples, share them out between 5 friends'
+        :param comments_dict: Dictionary with comments objects
+        :param free_char_spaces: Amount of characters to share out
+        :return: list, number of comments long. e.g [5, 5, 4] would be 3 comments, first comment gets 5 characters
+        """
+        comment_count = len(comments_dict)
         comment_extra_size = []
-        if numcomments > 0 and free_char_spaces > 0:
-           # print("Number of comments: " + str(numcomments))
-            upper = ceil(free_char_spaces/numcomments)
-            lower = floor(free_char_spaces/numcomments)
+        if comment_count > 0 and free_char_spaces > 0:
 
-           # print("Upper: " + str(upper))
-          #  print("Lower: " + str(lower))
-            remainder = free_char_spaces - (lower * numcomments)
-            numupper = remainder
-            numlower = numcomments - remainder
-           # print("Num Upper: " + str(numupper))
-           # print("Num lower: " + str(numlower))
-
-            for x in range(0, numupper):
+            upper = ceil(free_char_spaces/comment_count)
+            lower = floor(free_char_spaces/comment_count)
+            remainder = free_char_spaces - (lower * comment_count)
+            num_upper = remainder
+            # num_lower = comment_count - remainder
+            for x in range(0, num_upper):
                 comment_extra_size.append(upper)
-                
-            for x in range(numupper, numcomments):
+
+            for x in range(num_upper, comment_count):
                 comment_extra_size.append(lower)
         else:
-            
-                comment_extra_size = [0 for i in range (0, numcomments)]
+                comment_extra_size = [0 for i in range(0, comment_count)]
 
-    
-        return comment_extra_size   
+        return comment_extra_size
 
     def edit_footer(self, message):
         if self._embed is not None:
             self._embed.set_footer(icon_url=self._reddit_icon_url, text=str(message))
         return self._embed
 
-    
+
 
 """
 
@@ -443,7 +440,7 @@ class GfycatEmbed:
         description = kwargs.get('description', discord.Embed.Empty)
         thumbnail = kwargs.get('thumbnail', None)
         url = kwargs.get('url', discord.Embed.Empty)
-        colour = self._colour
+        colour = kwargs.get('color', self._colour)
         image = kwargs.get('image', None)
 
         self._embed = discord.Embed(title=title,

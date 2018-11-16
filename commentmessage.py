@@ -11,6 +11,10 @@ from time import gmtime, strftime
 
 
 async def create_commentmessage(reddit, submission_id:str, submission_title:str, submission_preview:str, submission_url:str, submission_type:str, channel):
+    """
+    Initialize a CommentMessage Object (using async)
+    """
+
     comment_message = CommentMessage(reddit, submission_id, submission_title, submission_preview, submission_url, submission_type, channel)
     await comment_message._init()
     return comment_message
@@ -129,9 +133,6 @@ class CommentMessage:
                 else:
                     page = 0
 
-            #print(page)
-            #print(len(self.pages) - 1)
-            #print(self.current_page)
             self.current_embed = RedditCommentEmbed()
             self.current_embed.create_embed(comments=self.pages[page],
                                             title=self.SUBMISSION_TITLE,
@@ -189,7 +190,7 @@ class CommentMessage:
 
         # if a comment is a more comments, request new comments, update pages, call the method again
 
-    async def get_more_comments(self, mc_object:MoreComments):
+    async def get_more_comments(self, mc_object: MoreComments):
         # TODO: Error Handling
         try:
             loop = asyncio.get_event_loop()

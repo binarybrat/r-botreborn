@@ -45,6 +45,8 @@ class InvalidRedditURL(Exception):
 class RedditOAuthException(Exception):
     pass
 
+class RedditForbiddenAccess(Exception):
+    pass
 
 class EmbedNotExistError(Exception):
     pass
@@ -52,3 +54,4 @@ class EmbedNotExistError(Exception):
 
 class NoCommentsException(Exception):
     pass
+
