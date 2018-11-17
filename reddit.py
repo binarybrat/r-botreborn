@@ -2,7 +2,7 @@ import asyncio
 import random
 import time
 from praw.exceptions import ClientException
-from prawcore.exceptions import NotFound, ResponseException, Forbidden
+from prawcore.exceptions import NotFound, ResponseException, Forbidden, Redirect
 #import logging
 import config
 from exceptions import *
@@ -100,9 +100,11 @@ class Reddit:
             return False
         except Forbidden:
             raise RedditForbiddenAccess
+        except Redirect:
+            return False
         except ResponseException as e:
             raise RedditOAuthException(e)
-        except NotImplementedError as e:
+        except UnknownException as e:
             if str(e) == "Redirect to /subreddits/search":
                 return False
             else:
