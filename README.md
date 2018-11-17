@@ -21,7 +21,7 @@ A simple discord bot that displays reddit content in discord.
 Note: exact commands may differ between systems
 
 #### Requirements:
-* Python 3 *(preferably 3.6, Python 3.7 is currently not supported by discord.py)*
+* Python >=3.6 *(Note: Python 3.7 is currently not supported by discord.py)*
 * Modules listed in requirements.txt (instructions below)
 * Reddit API access (instructions below)
 * Gfycat API access (instructions below)
